@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{BB288398-0ABD-46C3-A683-E87F81131F07}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="UsesGraph.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Tests\Tests.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="UsesGraph">
+        <MSBuild Projects="UsesGraph.dproj"/>
+    </Target>
+    <Target Name="UsesGraph:Clean">
+        <MSBuild Projects="UsesGraph.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="UsesGraph:Make">
+        <MSBuild Projects="UsesGraph.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Tests">
+        <MSBuild Projects="Tests\Tests.dproj"/>
+    </Target>
+    <Target Name="Tests:Clean">
+        <MSBuild Projects="Tests\Tests.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="Tests:Make">
+        <MSBuild Projects="Tests\Tests.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="UsesGraph;Tests"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="UsesGraph:Clean;Tests:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="UsesGraph:Make;Tests:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

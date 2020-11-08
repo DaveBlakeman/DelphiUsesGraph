@@ -1,8 +1,8 @@
 program Tests;
-
-{$IFNDEF TESTINSIGHT}
-{$APPTYPE CONSOLE}
-{$ENDIF}{$STRONGLINKTYPES ON}
+{$WARN DUPLICATE_CTOR_DTOR OFF}
+{--$IFNDEF TESTINSIGHT}
+{--$APPTYPE CONSOLE}
+{--$ENDIF}{$STRONGLINKTYPES ON}
 uses
   System.SysUtils,
   Vcl.Forms,
@@ -17,6 +17,6 @@ uses
 begin
   Application.Initialize;
   Application.Title := 'DUnitX';
-   Application.CreateForm(TGUIVCLTestRunner, GUIVCLTestRunner);
+  Application.CreateForm(TGUIVCLTestRunner, GUIVCLTestRunner);
   Application.Run;
 end.

@@ -1,5 +1,5 @@
 program UsesGraph;
-
+{$WARN DUPLICATE_CTOR_DTOR OFF}
 uses
   Vcl.Forms,
   Main in 'Main.pas' {FormMain},
@@ -10,6 +10,7 @@ uses
   GexfExport in 'GexfExport.pas';
 
 {$R *.res}
+
 
 begin
   Application.Initialize;

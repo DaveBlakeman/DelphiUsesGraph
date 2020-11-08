@@ -1,0 +1,8 @@
+﻿Tests/Win32
+Win32/Debug
+Tests/__history
+__history
+Tests/Tests.dproj.local
+*.res
+*.local
+*.stat

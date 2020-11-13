@@ -21,7 +21,7 @@ object FormMain: TFormMain
     Top = 0
     Width = 842
     Height = 563
-    ActivePage = TabSheetIgnoredFiles
+    ActivePage = TabSheetSettings
     Align = alClient
     TabOrder = 0
     OnChange = PageControl1Change
@@ -47,23 +47,43 @@ object FormMain: TFormMain
         object GroupBox1: TGroupBox
           Left = 3
           Top = 96
-          Width = 329
+          Width = 823
           Height = 398
           Anchors = [akLeft, akTop, akRight, akBottom]
           Caption = 'Search Paths'
           TabOrder = 0
           DesignSize = (
-            329
+            823
             398)
-          object MemoSearchPaths: TMemo
-            Left = 16
-            Top = 32
-            Width = 297
-            Height = 350
-            Anchors = [akLeft, akTop, akRight, akBottom]
+          object ButtonAddSearchPath: TButton
+            Left = 750
+            Top = 24
+            Width = 70
+            Height = 25
+            Anchors = [akRight, akBottom]
+            Caption = 'Add...'
             TabOrder = 0
-            OnChange = MemoSearchPathsChange
-            ExplicitHeight = 382
+            OnClick = ButtonAddSearchPathClick
+          end
+          object ListBoxSearchPaths: TListBox
+            Left = 15
+            Top = 24
+            Width = 729
+            Height = 353
+            Anchors = [akLeft, akTop, akRight, akBottom]
+            ItemHeight = 13
+            TabOrder = 1
+            OnClick = ListBoxSearchPathsClick
+          end
+          object ButtonRemoveSearchPath: TButton
+            Left = 748
+            Top = 64
+            Width = 70
+            Height = 25
+            Anchors = [akRight, akBottom]
+            Caption = 'Remove'
+            TabOrder = 2
+            OnClick = ButtonRemoveSearchPathClick
           end
         end
         object EditRoot: TEdit
@@ -78,7 +98,7 @@ object FormMain: TFormMain
         object ButtonBrowseRoot: TButton
           Left = 751
           Top = 59
-          Width = 75
+          Width = 70
           Height = 25
           Anchors = [akTop, akRight]
           Caption = '...'
@@ -86,12 +106,12 @@ object FormMain: TFormMain
           OnClick = ButtonBrowseRootClick
         end
         object ButtonAnalyse: TButton
-          Left = 19
+          Left = 3
           Top = 500
-          Width = 75
+          Width = 134
           Height = 25
           Anchors = [akLeft, akBottom]
-          Caption = 'Analyse'
+          Caption = 'Analyse Root File'
           TabOrder = 3
           OnClick = ButtonAnalyseClick
         end
@@ -110,6 +130,8 @@ object FormMain: TFormMain
           ParentFont = False
           TabOrder = 4
           VerticalAlignment = taAlignTop
+          ExplicitLeft = 0
+          ExplicitTop = 0
         end
       end
     end
@@ -146,8 +168,6 @@ object FormMain: TFormMain
           OnDrawCell = StringGridStatsDrawCell
           OnMouseDown = StringGridStatsMouseDown
           OnSelectCell = StringGridStatsSelectCell
-          ExplicitTop = 31
-          ExplicitHeight = 406
         end
         object PanelStatsTop: TPanel
           Left = 1
@@ -164,7 +184,6 @@ object FormMain: TFormMain
           ParentFont = False
           TabOrder = 1
           VerticalAlignment = taAlignTop
-          ExplicitTop = -5
           object LabelStats: TLabel
             Left = 160
             Top = 16
@@ -196,15 +215,12 @@ object FormMain: TFormMain
           Align = alBottom
           ItemHeight = 13
           TabOrder = 2
-          ExplicitTop = 440
         end
       end
     end
     object TabSheetGEXF: TTabSheet
       Caption = 'GEXF'
       ImageIndex = 3
-      ExplicitLeft = 8
-      ExplicitTop = 28
       object PanelFudgeGEXF: TPanel
         Left = 0
         Top = 0
@@ -212,10 +228,6 @@ object FormMain: TFormMain
         Height = 535
         Align = alClient
         TabOrder = 0
-        ExplicitLeft = 328
-        ExplicitTop = 248
-        ExplicitWidth = 185
-        ExplicitHeight = 41
         object MemoGEXF: TMemo
           Left = 1
           Top = 42
@@ -224,9 +236,6 @@ object FormMain: TFormMain
           Align = alClient
           ScrollBars = ssVertical
           TabOrder = 0
-          ExplicitLeft = 0
-          ExplicitTop = 72
-          ExplicitHeight = 461
         end
         object PanelGexfTop: TPanel
           Left = 1
@@ -276,10 +285,6 @@ object FormMain: TFormMain
         Height = 535
         Align = alClient
         TabOrder = 0
-        ExplicitLeft = 328
-        ExplicitTop = 248
-        ExplicitWidth = 185
-        ExplicitHeight = 41
         object Panel1: TPanel
           Left = 1
           Top = 1
@@ -297,8 +302,6 @@ object FormMain: TFormMain
           ParentFont = False
           TabOrder = 0
           VerticalAlignment = taAlignTop
-          ExplicitLeft = 2
-          ExplicitTop = 9
         end
         object MemoIgnoredFiles: TMemo
           Left = 1
@@ -308,7 +311,6 @@ object FormMain: TFormMain
           Align = alClient
           ScrollBars = ssVertical
           TabOrder = 1
-          ExplicitTop = 48
         end
       end
     end
@@ -328,14 +330,21 @@ object FormMain: TFormMain
       end
     end
   end
+  object DirectoryListBox1: TDirectoryListBox
+    Left = 632
+    Top = 160
+    Width = 1
+    Height = 25
+    TabOrder = 1
+  end
   object OpenDialogRoot: TOpenDialog
     Filter = 'Dephi files|*.pas'
     Left = 528
     Top = 136
   end
   object MainMenu1: TMainMenu
-    Left = 768
-    Top = 88
+    Left = 32
+    Top = 24
     object File1: TMenuItem
       Caption = 'File'
       object Open1: TMenuItem
@@ -354,8 +363,8 @@ object FormMain: TFormMain
   end
   object OpenDialogProject: TOpenDialog
     Filter = 'Usage Analysis  files|*.uaf'
-    Left = 608
-    Top = 160
+    Left = 616
+    Top = 136
   end
   object SaveDialogProject: TSaveDialog
     DefaultExt = '.uaf'

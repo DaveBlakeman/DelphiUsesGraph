@@ -6,7 +6,7 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Menus, Vcl.StdCtrls,
   DelphiProject, LexicalAnalyser, Vcl.Grids,
-  DelphiUnit, Vcl.ComCtrls, Vcl.ExtCtrls, System.UITypes;
+  DelphiUnit, Vcl.ComCtrls, Vcl.ExtCtrls, System.UITypes, Vcl.FileCtrl;
 
 type
   TFormMain = class(TForm)
@@ -26,7 +26,6 @@ type
     PanelDPIFudge: TPanel;
     Label1: TLabel;
     GroupBox1: TGroupBox;
-    MemoSearchPaths: TMemo;
     EditRoot: TEdit;
     ButtonBrowseRoot: TButton;
     ButtonAnalyse: TButton;
@@ -48,6 +47,10 @@ type
     Panel1: TPanel;
     MemoIgnoredFiles: TMemo;
     Panel2: TPanel;
+    ButtonAddSearchPath: TButton;
+    DirectoryListBox1: TDirectoryListBox;
+    ListBoxSearchPaths: TListBox;
+    ButtonRemoveSearchPath: TButton;
     procedure Exit1Click(Sender: TObject);
     procedure Open1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -56,7 +59,6 @@ type
     procedure SaveProject1Click(Sender: TObject);
     procedure ButtonBrowseRootClick(Sender: TObject);
     procedure EditRootChange(Sender: TObject);
-    procedure MemoSearchPathsChange(Sender: TObject);
     procedure CheckBoxShowExternalUnitsClick(Sender: TObject);
     procedure StringGridStatsDrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
     procedure StringGridStatsSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
@@ -64,8 +66,13 @@ type
     procedure PageControl1Change(Sender: TObject);
     procedure CheckBoxGexfIntfUsesClick(Sender: TObject);
     procedure CheckBoxGexfImplUsesClick(Sender: TObject);
+    procedure ButtonAddSearchPathClick(Sender: TObject);
+    procedure ButtonRemoveSearchPathClick(Sender: TObject);
+    procedure ListBoxSearchPathsClick(Sender: TObject);
   private
     fProject: TDelphiProject;
+    procedure CheckControls;
+    function Confirm(Msg: String): Boolean;
     procedure ParseFile(FileName: String);
     procedure Log(S: String; Level: TLogLevel = llInfo);
     procedure LoadGrid(SortCol: TDelphiUnitStatType; Ascending: Boolean; ShowExternalUnits: Boolean);
@@ -105,6 +112,22 @@ const
   cStatsColCyclic         = 12;
   cStatsColFileName       = 13;
 
+procedure TFormMain.ButtonAddSearchPathClick(Sender: TObject);
+begin
+  with TFileOpenDialog.Create(nil) do
+    try
+      Options := [fdoPickFolders];
+      if Execute then
+      begin
+        ListBoxSearchPaths.AddItem(FileName, nil);
+        fProject.Settings.SearchDirs.Add(FileName);
+        CheckControls
+      end;
+    finally
+      Free;
+    end;
+end;
+
 procedure TFormMain.ButtonAnalyseClick(Sender: TObject);
 begin
   MemoLog.Lines.BeginUpdate;
@@ -123,6 +146,25 @@ begin
      EditRoot.Text:=OpenDialogRoot.FileName
 end;
 
+procedure TFormMain.ButtonRemoveSearchPathClick(Sender: TObject);
+var
+ Selected: String;
+ Index   : Integer;
+begin
+  if (ListBoxSearchPaths.ItemIndex <> -1) then
+  begin
+    Selected:=ListBoxSearchPaths.Items[ListBoxSearchPaths.ItemIndex];
+    if Confirm('Remove "' + Selected + '" ?') then
+    begin
+      ListBoxSearchPaths.DeleteSelected;
+      CheckControls;
+      Index:=fProject.Settings.SearchDirs.IndexOf(Selected);
+      if Index <> -1 then
+        fProject.Settings.SearchDirs.Delete(Index);
+    end
+  end;
+end;
+
 procedure TFormMain.CheckBoxGexfImplUsesClick(Sender: TObject);
 begin
   UpdateGexf
@@ -136,6 +178,16 @@ end;
 procedure TFormMain.CheckBoxShowExternalUnitsClick(Sender: TObject);
 begin
   LoadGrid(duName, True, CheckBoxShowExternalUnits.Checked);
+end;
+
+procedure TFormMain.CheckControls;
+begin
+  ButtonRemoveSearchPath.Enabled:=ListBoxSearchPaths.ItemIndex <> -1
+end;
+
+function TFormMain.Confirm(Msg: String): Boolean;
+begin
+  Result:=MessageDlg(Msg, mtConfirmation, [mbOK, mbCancel], 0) = mrOk
 end;
 
 procedure TFormMain.EditRootChange(Sender: TObject);
@@ -193,6 +245,11 @@ begin
   StringGridStats.ColCount:=LastColIndex+1
 end;
 
+procedure TFormMain.ListBoxSearchPathsClick(Sender: TObject);
+begin
+  CheckControls
+end;
+
 procedure TFormMain.LoadGrid(SortCol: TDelphiUnitStatType; Ascending: Boolean; ShowExternalUnits: Boolean);
 
   procedure AddRow(U: TDelphiUnit; Row: Integer);
@@ -244,18 +301,14 @@ begin
   end;
 end;
 
-procedure TFormMain.MemoSearchPathsChange(Sender: TObject);
-begin
-  fProject.Settings.SearchDirs.Assign(MemoSearchPaths.Lines);
-end;
-
 procedure TFormMain.Open1Click(Sender: TObject);
 begin
   if OpenDialogProject.Execute then
   begin
     fProject.LoadFromFile(OpenDialogProject.FileName);
     EditRoot.Text:=fProject.Settings.RootFileName;
-    MemoSearchPaths.Text:=fProject.Settings.SearchDirs.Text;
+    ListBoxSearchPaths.Items.Assign(fProject.Settings.SearchDirs);
+    CheckControls;
   end;
 end;
 

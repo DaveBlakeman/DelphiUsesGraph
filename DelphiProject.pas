@@ -63,16 +63,21 @@ var
   FileName  : String;
   UnitName  : String;
 begin
-  FileNames:=TDirectory.GetFiles(Path, '*.pas', TSearchOption.soAllDirectories);
-  for FileName in FileNames do
+  if DirectoryExists(Path) then
   begin
-    UnitName:=ExtractFileName(FileName);
-    UnitName:=StringReplace(UnitName, '.pas', '', [rfReplaceAll, rfIgnoreCase]);
-    if not fFileNames.ContainsKey(UnitName) then
-      fFileNames.Add(UnitName, FileName)
-    else
-      Log('Duplicate unit name found: "' + UnitName + '"', llWarning);
-  end;
+    FileNames:=TDirectory.GetFiles(Path, '*.pas', TSearchOption.soAllDirectories);
+    for FileName in FileNames do
+    begin
+      UnitName:=ExtractFileName(FileName);
+      UnitName:=StringReplace(UnitName, '.pas', '', [rfReplaceAll, rfIgnoreCase]);
+      if not fFileNames.ContainsKey(UnitName) then
+        fFileNames.Add(UnitName, FileName)
+      else
+        Log('Duplicate unit name found: "' + UnitName + '"', llWarning);
+    end;
+  end
+  else
+    Log('Could not find folder "' + Path + '"')
 
 end;
 
@@ -163,6 +168,13 @@ begin
   fFileNames.Clear;
   fIgnoredFiles.Clear;
   fMainUnit:=TDelphiUnit.Create;
+
+  if not TFile.Exists(FileName) then
+  begin
+    Log('Could not find project file "' + FileName + '"');
+    Exit;
+  end;
+
   // look in the home folder if not other search dirs
   if fSettings.SearchDirs.Count = 0 then
     CollectFileNames(ExtractFilePath(fSettings.RootFileName))

@@ -27,7 +27,7 @@ implementation
 
 uses
   IoUtils,
-  JsonDataObjects,
+  System.JSON,
   SysUtils;
 
 { TProjectSettings }
@@ -46,23 +46,26 @@ end;
 
 procedure TProjectSettings.LoadFromFile(FileName: String);
 var
-  Text  : String;
-  JSON  : TJSONObject;
-  Dirs  : TJSONArray;
-  I     : Integer;
+  Text    : String;
+  JSON    : TJSONValue;
+  DirArray: TJSONArray;
+  Dir     : TJSONValue;
 begin
   fRootFileName:='';
   fSearchDirs.Clear;
   Text := TFile.ReadAllText(FileName);
-  JSON := TJSONObject.Parse(Text) as TJSONObject;
+  JSON := TJSonObject.ParseJSONValue(Text);
   try
-    fRootFileName:=JSON.S['RootFileName'];
-    Dirs:=JSON.A['SearchDirs'];
-    if (Dirs <> nil) then
+    if JSON is TJSONObject then
     begin
-      for I:=0 to Dirs.Count-1 do
-        fSearchDirs.Add(Dirs.S[I]);
-    end
+      fRootFileName:=(JSON as TJSONObject).GetValue<String>('RootFileName');
+      DirArray:=(JSON as TJSONObject).GetValue('SearchDirs') as TJSONArray;
+      if DirArray <> nil then
+      begin
+        for Dir in DirArray do
+          fSearchDirs.Add(Dir.Value);
+      end;
+    end;
   finally
     FreeAndNil(JSON);
   end;
@@ -71,19 +74,20 @@ end;
 procedure TProjectSettings.SaveToFile(FileName: String);
 var
   JSON: TJSONObject;
-  JsonDirs: TJsonArray;
+  JSONDirs: TJsonArray;
   Dir    : String;
 begin
   JSON:=TJSONObject.Create;
   try
-    JSON.S['RootFileName']:= fRootFileName;
 
-    JsonDirs:=TJsonArray.Create;
+    JSON.AddPair('RootFileName', fRootFileName);
+
+    JSONDirs:=TJsonArray.Create;
     for Dir in fSearchDirs do
-      JsonDirs.Add(Dir);
-    JSON.A['SearchDirs']:=JsonDirs;
+      JSONDirs.Add(Dir);
+    JSON.AddPair('SearchDirs', JSONDirs);
+    TFile.WriteAllText(fileName, JSON.ToJSON());
 
-    JSON.SaveToFile(Filename, False);
   finally
     FreeAndNil(JSON);
   end;

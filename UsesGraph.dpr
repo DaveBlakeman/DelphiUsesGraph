@@ -7,7 +7,8 @@ uses
   LexicalAnalyser in 'LexicalAnalyser.pas',
   DelphiProject in 'DelphiProject.pas',
   ProjectSettings in 'ProjectSettings.pas',
-  GexfExport in 'GexfExport.pas';
+  GexfExport in 'GexfExport.pas',
+  DelphiClass in 'DelphiClass.pas';
 
 {$R *.res}
 

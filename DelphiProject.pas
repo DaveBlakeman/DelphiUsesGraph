@@ -53,7 +53,7 @@ implementation
 uses
   System.Generics.Defaults,
   System.IOUtils,
-  SysUtils;
+  SysUtils, DelphiClass;
 
 { TDelphiProject }
 
@@ -255,6 +255,8 @@ var
     end;
   end;
 
+var
+  CurrentClass: TDelphiClass;
 begin
   if U.Parsed then
     Exit;
@@ -277,9 +279,24 @@ begin
       ParseUsesClause(U.InterfaceUses);
 
     //Lex.SkipTo('implementation');
-
     while not Lex.OptionalSym('implementation') do
     begin
+      if Lex.SymbolIs('class') then
+      begin
+        CurrentClass:=TDelphiClass.Create(Lex.PreviousSym(1));
+        Lex.GetSym;
+        U.InterfaceClasses.Add(CurrentClass);
+        while not Lex.OptionalSym('end') do
+        begin
+          if Lex.OptionalSym('procedure') and not Lex.OptionalSym('(') then
+            CurrentClass.Routines.Add('procedure ' + GetQualifiedName)
+          else if Lex.OptionalSym('function') and not Lex.OptionalSym('(') then
+            CurrentClass.Routines.Add('function ' + GetQualifiedName)
+          else
+            Lex.GetSym;
+        end;
+      end;
+
       if Lex.OptionalSym('procedure') and not Lex.OptionalSym('(') then
         U.InterfaceRoutines.Add('procedure ' + GetQualifiedName)
       else if Lex.OptionalSym('function') and not Lex.OptionalSym('(') then

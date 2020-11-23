@@ -6,3 +6,5 @@ Tests/Tests.dproj.local
 *.res
 *.local
 *.stat
+*.identcache
+*.dsk

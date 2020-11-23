@@ -106,11 +106,12 @@ const
   cStatsColWeighting      = 6;
   cStatsColDepth          = 7;
   cStatsColDepthDiff      = 8;
-  cStatsColIntfProcs      = 9;
-  cStatsColIntfDependency = 10;
-  cStatsColImplDependency = 11;
-  cStatsColCyclic         = 12;
-  cStatsColFileName       = 13;
+  cStatsColIntfClasses    = 9;
+  cStatsColIntfProcs      = 10;
+  cStatsColIntfDependency = 11;
+  cStatsColImplDependency = 12;
+  cStatsColCyclic         = 13;
+  cStatsColFileName       = 14;
 
 procedure TFormMain.ButtonAddSearchPathClick(Sender: TObject);
 begin
@@ -237,6 +238,7 @@ begin
   AddHeading( cStatsColWeighting, 'Weighting', 100);
   AddHeading( cStatsColDepth,     'Depth', 100);
   AddHeading( cStatsColDepthDiff, 'Depth Diff', 100);
+  AddHeading( cStatsColIntfClasses, 'Intf Classes', 100);
   AddHeading( cStatsColIntfProcs, 'Intf Routines', 100);
   AddHeading( cStatsColIntfDependency, 'Intf Dependency', 100);
   AddHeading( cStatsColImplDependency, 'Impl Dependency', 100);
@@ -264,6 +266,7 @@ procedure TFormMain.LoadGrid(SortCol: TDelphiUnitStatType; Ascending: Boolean; S
     StringGridStats.Cells[cStatsColWeighting,  Row]     := IntToStr(U.Weighting);
     StringGridStats.Cells[cStatsColDepth    ,  Row]     := IntToStr(U.Depth);
     StringGridStats.Cells[cStatsColDepthDiff,  Row]     := IntToStr(U.DepthDifferential);
+    StringGridStats.Cells[cStatsColIntfClasses,Row]     := IntToStr(U.InterfaceClasses.Count);
     StringGridStats.Cells[cStatsColIntfProcs,  Row]     := IntToStr(U.InterfaceRoutines.Count);
     StringGridStats.Cells[cStatsColIntfDependency, Row] := IntToStr(U.MaxInterfaceDependency);
     StringGridStats.Cells[cStatsColImplDependency, Row] := IntToStr(U.MaxDependency);
@@ -371,6 +374,7 @@ begin
     cStatsColWeighting      : Result:= duWeighting;
     cStatsColDepth          : Result:= duDepth;
     cStatsColDepthDiff      : Result:= duDepthDiff;
+    cStatsColIntfClasses    : Result:= duClasses;
     cStatsColIntfProcs      : Result:= duRoutines;
     cStatsColFileName       : Result:= duFileName;
     cStatsColIntfDependency : Result:= duIntfDependency;

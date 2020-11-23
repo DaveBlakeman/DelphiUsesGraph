@@ -27,6 +27,10 @@ object FormMain: TFormMain
     OnChange = PageControl1Change
     object TabSheetSettings: TTabSheet
       Caption = 'Project Settings'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object PanelDPIFudge: TPanel
         Left = 0
         Top = 0
@@ -138,6 +142,10 @@ object FormMain: TFormMain
     object TabSheetStatistics: TTabSheet
       Caption = 'Statistics'
       ImageIndex = 2
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object PanelDPIFudgeStats: TPanel
         Left = 0
         Top = 0
@@ -221,6 +229,10 @@ object FormMain: TFormMain
     object TabSheetGEXF: TTabSheet
       Caption = 'GEXF'
       ImageIndex = 3
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object PanelFudgeGEXF: TPanel
         Left = 0
         Top = 0
@@ -278,6 +290,10 @@ object FormMain: TFormMain
     object TabSheetIgnoredFiles: TTabSheet
       Caption = 'Ignored Files'
       ImageIndex = 4
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object PanelFudgeIgnore: TPanel
         Left = 0
         Top = 0
@@ -317,6 +333,10 @@ object FormMain: TFormMain
     object TabSheetLog: TTabSheet
       Caption = 'Log'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object MemoLog: TMemo
         Left = 0
         Top = 0

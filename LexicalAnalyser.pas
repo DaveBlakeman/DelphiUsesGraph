@@ -12,7 +12,8 @@ interface
     private
       fText     : String;
       fPos      : Integer;
-      fPrev     : String;
+      fPrevPrev : String; // 2 symbols back
+      fPrev     : String; // 1 symbols back
       fSym      : string;
       fCh       : Char;
       fLineNo   : Integer;
@@ -22,7 +23,6 @@ interface
       procedure GetCh;
       procedure GetASym;
       procedure ShowError(S: String);
-      function SymbolIs(S: String): Boolean;
       function TextBetween(Start: Integer; Finish: Integer): String;
       function LineStart: Integer;
       function LineEnd: Integer;
@@ -31,11 +31,13 @@ interface
       constructor CreateFromFile(FileName: String);
       constructor CreateFromString(S: String);
 
-      function CurrentSym: String;
-      function GetSym: String;
+      function  CurrentSym: String;
+      function  PreviousSym(SymbolsAgo: Integer): String;
+      function  GetSym: String;
 
-      function AtEnd: Boolean;
+      function  AtEnd: Boolean;
 
+      function  SymbolIs(S: String): Boolean;
       procedure RequiredSym(S: String);
       function  OptionalSym(S: String): Boolean;
       procedure SkipToEof;
@@ -298,6 +300,7 @@ function TLexicalAnalyser.GetSym: String;
 begin
   if fSym = #0 then
     raise Exception.Create('GetSym: EOF!!! previous was: ' + fSym);
+  fPrevPrev:=fPrev;
   fPrev:=fSym;
   GetASym;
   Result:=fSym;
@@ -370,6 +373,15 @@ begin
     Result:=True;
     Self.GetSym
   end
+end;
+
+function TLexicalAnalyser.PreviousSym(SymbolsAgo: Integer): String;begin
+  if SymbolsAgo = 0 then
+    Result:=fPrev
+  else if SymbolsAgo = 1 then
+    Result:=fPrevPrev
+  else
+    raise Exception.Create('PreviousSym: too far back!');
 end;
 
 end.

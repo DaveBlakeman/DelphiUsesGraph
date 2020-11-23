@@ -84,6 +84,10 @@ type
     [TestCase('Parenthesis: array', '[A],[,A,]')]
     procedure TestParenthesis(const InputString : String; const Open, Content, Close: String);
 
+    [Test]
+    [TestCase('Previous', 'A = B,=,A')]
+    procedure TestPrevious(const InputString : String; const Previous0, Previous1: String);
+
   end;
 
 implementation
@@ -201,6 +205,25 @@ begin
     Assert.AreEqual(OpenSym, Open);
     Assert.AreEqual(ContentSym, Content);
     Assert.AreEqual(CloseSym, Close);
+  finally
+    FreeAndNil(Lex);
+  end;
+end;
+
+procedure TLexicalAnalyserTests.TestPrevious(const InputString, Previous0, Previous1: String);
+var
+  Lex: TLexicalAnalyser;
+  FirstSym: String;
+  SecondSym: String;
+  ThirdSym: String;
+begin
+  Lex:=TLexicalAnalyser.CreateFromString(InputString);
+  try
+    FirstSym := Lex.CurrentSym;
+    SecondSym := Lex.GetSym;
+    ThirdSym := Lex.GetSym;
+    Assert.AreEqual(Lex.PreviousSym(0), Previous0);
+    Assert.AreEqual(Lex.PreviousSym(1), Previous1);
   finally
     FreeAndNil(Lex);
   end;

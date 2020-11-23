@@ -5,7 +5,8 @@ interface
 uses
   System.Generics.Defaults,
   System.Generics.Collections,
-  System.Classes;
+  System.Classes,
+  DelphiClass;
 
 type
 
@@ -20,6 +21,7 @@ type
     duWeighting,
     duDepth,
     duDepthDiff,
+    duClasses,
     duRoutines,
     duIntfDependency,
     duImplDependency,
@@ -43,6 +45,7 @@ type
     fContainsCycles         : TLazyBool;
     fInterfaceUses          : TObjectList<TDelphiUnit>;
     fInterfaceRoutines      : TStringList;
+    fInterfaceClasses       : TObjectList<TDelphiClass>;
     fImplementationUses     : TObjectList<TDelphiUnit>;
 
     fRefsFromInterfaces     : TObjectList<TDelphiUnit>;  // other units referring to me form their Interface
@@ -76,19 +79,20 @@ type
 
     function DepthDifferential: Integer;
 
-    property Name                   : String                   read fName      write fName;
-    property FileName               : String                   read fFileName  write fFileName;
-    property Depth                  : Integer                  read fDepth     write fDepth;
-    property LineCount              : Integer                  read fLineCount write fLineCount;
-    property Parsed                 : Boolean                  read fParsed    write fParsed;
-    property ContainsCycles         : Boolean                  read GetContainsCycles;
-    property MaxDependency          : Integer                  read GetMaxDependency;
-    property MaxInterfaceDependency : Integer                  read GetMaxInterfaceDependency;
-    property InterfaceUses          : TObjectList<TDelphiUnit> read fInterfaceUses;
-    property InterfaceRoutines      : TStringList              read fInterfaceRoutines;
-    property ImplementationUses     : TObjectList<TDelphiUnit> read fImplementationUses;
-    property RefsFromInterfaces     : TObjectList<TDelphiUnit> read fRefsFromInterfaces ;
-    property RefsFromImplementations: TObjectList<TDelphiUnit> read fRefsFromImplementations;
+    property Name                   : String                    read fName      write fName;
+    property FileName               : String                    read fFileName  write fFileName;
+    property Depth                  : Integer                   read fDepth     write fDepth;
+    property LineCount              : Integer                   read fLineCount write fLineCount;
+    property Parsed                 : Boolean                   read fParsed    write fParsed;
+    property ContainsCycles         : Boolean                   read GetContainsCycles;
+    property MaxDependency          : Integer                   read GetMaxDependency;
+    property MaxInterfaceDependency : Integer                   read GetMaxInterfaceDependency;
+    property InterfaceUses          : TObjectList<TDelphiUnit>  read fInterfaceUses;
+    property InterfaceClasses       : TObjectList<TDelphiClass> read fInterfaceClasses;
+    property InterfaceRoutines      : TStringList               read fInterfaceRoutines;
+    property ImplementationUses     : TObjectList<TDelphiUnit>  read fImplementationUses;
+    property RefsFromInterfaces     : TObjectList<TDelphiUnit>  read fRefsFromInterfaces ;
+    property RefsFromImplementations: TObjectList<TDelphiUnit>  read fRefsFromImplementations;
   end;
 
   TDelphiUnitComparer = class(TComparer<TDelphiUnit>)
@@ -121,6 +125,7 @@ begin
   fMaxDependency:=-1;
   fContainsCycles:=lbNotCalculated;
   fInterfaceUses.Clear;
+  fInterfaceClasses.Clear;
   fInterfaceRoutines.Clear;
   fImplementationUses.Clear;
   fRefsFromInterfaces.Clear;
@@ -136,9 +141,10 @@ begin
   fLineCount:=0;
   fMaxInterfaceDependency:=-1;
   fMaxDependency:=-1;
-  fContainsCycles          :=lbNotCalculated;
+  fContainsCycles          := lbNotCalculated;
   fInterfaceUses           := TObjectList<TDelphiUnit>.Create(False);
-  fInterfaceRoutines       :=TStringList.Create;
+  fInterfaceClasses        := TObjectList<TDelphiClass>.Create(True);
+  fInterfaceRoutines       := TStringList.Create;
   fImplementationUses      := TObjectList<TDelphiUnit>.Create(False);
   fRefsFromInterfaces      := TObjectList<TDelphiUnit>.Create(False);
   fRefsFromImplementations := TObjectList<TDelphiUnit>.Create(False);
@@ -160,6 +166,7 @@ end;
 destructor TDelphiUnit.Destroy;
 begin
   FreeAndNil(fInterfaceUses);
+  FreeAndNil(fInterfaceClasses);
   FreeAndNil(fInterfaceRoutines);
   FreeAndNil(fImplementationUses);
   FreeAndNil(fRefsFromInterfaces);
@@ -357,6 +364,7 @@ end;
 procedure TDelphiUnit.GetStatDetails(StatType: TDelphiUnitStatType; Strings: TStrings);
 var
   U: TDelphiUnit;
+  C: TDelphiClass;
 begin
   Strings.Clear;
   case StatType of
@@ -374,6 +382,8 @@ begin
     duWeighting     : Strings.AddObject(IntToStr(Weighting), Self);
     duDepth         : Strings.AddObject(IntToStr(Depth), Self);
     duDepthDiff     : Strings.AddObject(IntToStr(DepthDifferential), Self);
+    duClasses       : for C in fInterfaceClasses do
+                        Strings.AddObject(C.Name + ': ' + IntToStr(C.Routines.Count) + ' routines', C);
     duRoutines      : Strings.Assign(InterfaceRoutines);
     duIntfDependency: GetDependencyTree(Self, Strings, dufInterfacesOnly, 0, 10);
     duImplDependency: GetDependencyTree(Self, Strings, dufAll, 0, 10);
@@ -454,6 +464,7 @@ begin
     duWeighting     : Result := CompareIntegers(Left.Weighting, Right.Weighting);
     duDepth         : Result := CompareIntegers(Left.Depth, Right.Depth);
     duDepthDiff     : Result := CompareIntegers(Left.DepthDifferential, Right.DepthDifferential);
+    duClasses       : Result := CompareIntegers(Left.InterfaceClasses.Count, Right.InterfaceClasses.Count);
     duRoutines      : Result := CompareIntegers(Left.InterfaceRoutines.Count, Right.InterfaceRoutines.Count);
     duIntfDependency: Result := CompareIntegers(Left.MaxInterfaceDependency, Right.MaxInterfaceDependency);
     duImplDependency: Result := CompareIntegers(Left.MaxDependency, Right.MaxDependency);

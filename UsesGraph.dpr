@@ -8,7 +8,8 @@ uses
   DelphiProject in 'DelphiProject.pas',
   ProjectSettings in 'ProjectSettings.pas',
   GexfExport in 'GexfExport.pas',
-  DelphiClass in 'DelphiClass.pas';
+  DelphiClass in 'DelphiClass.pas',
+  JSONExport in 'JSONExport.pas';
 
 {$R *.res}
 

@@ -6,7 +6,13 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Menus, Vcl.StdCtrls,
   DelphiProject, LexicalAnalyser, Vcl.Grids,
-  DelphiUnit, Vcl.ComCtrls, Vcl.ExtCtrls, System.UITypes, Vcl.FileCtrl;
+  DelphiUnit,
+  DelphiClass,
+  Vcl.ComCtrls, Vcl.ExtCtrls, System.UITypes,
+  {$WARN SYMBOL_PLATFORM OFF}
+  Vcl.FileCtrl
+  {$WARN SYMBOL_PLATFORM ON}
+  ;
 
 type
   TFormMain = class(TForm)
@@ -51,6 +57,16 @@ type
     DirectoryListBox1: TDirectoryListBox;
     ListBoxSearchPaths: TListBox;
     ButtonRemoveSearchPath: TButton;
+    TabSheetJSON: TTabSheet;
+    PanelJSONExport: TPanel;
+    CheckBoxJSONInterfaceUses: TCheckBox;
+    CheckBoxJSONImplementationUses: TCheckBox;
+    MemoJSON: TMemo;
+    TabSheetClasses: TTabSheet;
+    Panel3: TPanel;
+    LabelClasses: TLabel;
+    StringGridClasses: TStringGrid;
+    ListBox1: TListBox;
     procedure Exit1Click(Sender: TObject);
     procedure Open1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -69,17 +85,25 @@ type
     procedure ButtonAddSearchPathClick(Sender: TObject);
     procedure ButtonRemoveSearchPathClick(Sender: TObject);
     procedure ListBoxSearchPathsClick(Sender: TObject);
+    procedure StringGridClassesDrawCell(Sender: TObject; ACol, ARow: Integer;
+      Rect: TRect; State: TGridDrawState);
+    procedure StringGridClassesMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
   private
     fProject: TDelphiProject;
     procedure CheckControls;
     function Confirm(Msg: String): Boolean;
     procedure ParseFile(FileName: String);
     procedure Log(S: String; Level: TLogLevel = llInfo);
-    procedure LoadGrid(SortCol: TDelphiUnitStatType; Ascending: Boolean; ShowExternalUnits: Boolean);
-    procedure InitGrid;
-    function StatTypeForCol(Col: Integer): TDelphiUnitStatType;
+    procedure InitStatsGrid;
+    procedure InitClassesGrid;
+    function  UnitStatTypeForCol(Col: Integer): TDelphiUnitStatType;
     procedure UpdateGexf();
     procedure UpdateIgnoredFiles();
+    procedure UpdateJson;
+    procedure LoadStatsGrid(SortCol: TDelphiUnitStatType; Ascending: Boolean; ShowExternalUnits: Boolean);
+    procedure LoadClassesGrid(SortCol: TDelphiClassStatType; Ascending: Boolean);
+    function ClassStatTypeForCol(Col: Integer): TDelphiClassStatType;
   public
     { Public declarations }
   end;
@@ -94,7 +118,7 @@ implementation
 uses
   System.Generics.Collections,
   System.Math,
-  GexfExport;
+  GexfExport, JSONExport;
 
 const
   cStatsColName           = 0;
@@ -113,8 +137,14 @@ const
   cStatsColCyclic         = 13;
   cStatsColFileName       = 14;
 
+  cClassesColName         = 0;
+  cClassesColProcs        = 1;
+  cClassesColProperties   = 2;
+  cClassesColFileName     = 3;
+
 procedure TFormMain.ButtonAddSearchPathClick(Sender: TObject);
 begin
+  {$WARN SYMBOL_PLATFORM OFF}
   with TFileOpenDialog.Create(nil) do
     try
       Options := [fdoPickFolders];
@@ -127,6 +157,7 @@ begin
     finally
       Free;
     end;
+  {$WARN SYMBOL_PLATFORM ON}
 end;
 
 procedure TFormMain.ButtonAnalyseClick(Sender: TObject);
@@ -178,7 +209,7 @@ end;
 
 procedure TFormMain.CheckBoxShowExternalUnitsClick(Sender: TObject);
 begin
-  LoadGrid(duName, True, CheckBoxShowExternalUnits.Checked);
+  LoadStatsGrid(duName, True, CheckBoxShowExternalUnits.Checked);
 end;
 
 procedure TFormMain.CheckControls;
@@ -204,7 +235,8 @@ end;
 procedure TFormMain.FormCreate(Sender: TObject);
 begin
   fProject:=TDelphiProject.Create;
-  InitGrid;
+  InitStatsGrid;
+  InitClassesGrid;
   PageControl1.TabIndex:=0;
 end;
 
@@ -213,7 +245,7 @@ begin
   FreeAndNil(fProject)
 end;
 
-procedure TFormMain.InitGrid;
+procedure TFormMain.InitStatsGrid;
 
   var
     LastColIndex: Integer;
@@ -247,12 +279,35 @@ begin
   StringGridStats.ColCount:=LastColIndex+1
 end;
 
+procedure TFormMain.InitClassesGrid;
+
+  var
+    LastColIndex: Integer;
+
+  procedure AddHeading(Col: Integer; Title: String; Width: Integer);
+  begin
+    StringGridClasses.Cells    [Col, 0] := Title;
+    StringGridClasses.ColWidths[Col   ] := width;
+    StringGridClasses.Objects  [Col, 0] := TObject(False); // last sort order
+    LastColIndex:=Max(LastColIndex, Col);
+  end;
+
+begin
+  LastColIndex:=0;
+  StringGridClasses.ColCount:=100;
+  AddHeading( cClassesColName,        'Unit', 300);
+  AddHeading( cClassesColProcs,       'Routines', 100);
+  AddHeading( cClassesColProperties,  'Properties', 100);
+  AddHeading( cClassesColFileName,    'File Name', 500);
+  StringGridClasses.ColCount:=LastColIndex+1
+end;
+
 procedure TFormMain.ListBoxSearchPathsClick(Sender: TObject);
 begin
   CheckControls
 end;
 
-procedure TFormMain.LoadGrid(SortCol: TDelphiUnitStatType; Ascending: Boolean; ShowExternalUnits: Boolean);
+procedure TFormMain.LoadStatsGrid(SortCol: TDelphiUnitStatType; Ascending: Boolean; ShowExternalUnits: Boolean);
 
   procedure AddRow(U: TDelphiUnit; Row: Integer);
   begin
@@ -295,6 +350,38 @@ begin
   end;
 end;
 
+procedure TFormMain.LoadClassesGrid(SortCol: TDelphiClassStatType; Ascending: Boolean);
+
+  procedure AddRow(C: TDelphiClass; Row: Integer);
+  begin
+    StringGridClasses.Objects[0, Row]                     := C;
+    StringGridClasses.Cells[cClassesColName      ,   Row] := C.Name;
+    StringGridClasses.Cells[cClassesColProcs     ,   Row] := IntToStr(C.Routines.Count);
+    StringGridClasses.Cells[cClassesColProperties,   Row] := IntToStr(C.Properties.Count);
+    StringGridClasses.Cells[cClassesColFileName  ,   Row] := C.FileName;
+  end;
+
+var
+  Classes: TObjectList<TDelphiClass>;
+  C: TDelphiClass;
+  Row: Integer;
+begin
+  Classes:=TObjectList<TDelphiClass>.Create(False);
+  try
+    fProject.GetClassesSorted(SortCol, Ascending, Classes);
+    LabelClasses.Caption:='Showing ' + IntToStr(Classes.Count) + ' classes';
+    StringGridClasses.RowCount:=1+Classes.Count;
+    Row:=1;
+    for C in Classes do
+    begin
+      AddRow(C, Row);
+      Inc(Row)
+    end;
+  finally
+    FreeAndnil(Classes);
+  end;
+end;
+
 procedure TFormMain.Log(S: String; Level: TLogLevel);
 begin
   case Level of
@@ -333,6 +420,24 @@ begin
   end;
 end;
 
+procedure TFormMain.UpdateJson();
+var
+  Exporter: TJSONExport;
+  Options : TJSONExportOptions;
+begin
+  Options:=[];
+  if CheckBoxJSONInterfaceUses.Checked then
+    Options:=Options + [JSONExportIntfUses];
+  if CheckBoxJSONImplementationUses.Checked then
+    Options:=Options + [JSONExportImplUses];
+  Exporter:=TJSONExport.Create;
+  try
+    Exporter.ExportProjectToStrings(fProject, MemoJSON.Lines, Options);
+  finally
+    FreeAndNil(Exporter);
+  end;
+end;
+
 procedure TFormMain.UpdateIgnoredFiles;
 begin
   fProject.GetIgnoredFiles(MemoIgnoredFiles.Lines)
@@ -342,6 +447,8 @@ procedure TFormMain.PageControl1Change(Sender: TObject);
 begin
   if PageControl1.ActivePage = TabSheetGEXF then
     UpdateGexf()
+  else if PageControl1.ActivePage = TabSheetJSON then
+    UpdateJSON()
   else if PageControl1.ActivePage = TabSheetIgnoredFiles then
     UpdateIgnoredFiles()
 end;
@@ -352,7 +459,8 @@ begin
   Log('');
   Log('Done.');
   MemoLog.SelStart:=Length(MemoLog.Text);
-  LoadGrid(duName, True, CheckBoxShowExternalUnits.Checked);
+  LoadStatsGrid(duName, True, CheckBoxShowExternalUnits.Checked);
+  LoadClassesGrid(dcName, True);
   //fProject.UnParse(MemoLog.Lines);
 end;
 
@@ -362,7 +470,7 @@ begin
     fProject.SaveToFile(SaveDialogProject.FileName);
 end;
 
-function TFormMain.StatTypeForCol(Col: Integer): TDelphiUnitStatType;
+function TFormMain.UnitStatTypeForCol(Col: Integer): TDelphiUnitStatType;
 begin
   case col of
     cStatsColName           : Result:= duName;
@@ -381,10 +489,85 @@ begin
     cStatsColImplDependency : Result:= duImplDependency;
     cStatsColCyclic         : Result:= duCyclic
   else
-    raise Exception.Create('SortColForCol: unknown column');
+    raise Exception.Create('UnitStatTypeForCol: unknown column');
   end
 end;
 
+function TFormMain.ClassStatTypeForCol(Col: Integer): TDelphiClassStatType;
+begin
+  case col of
+    cClassesColName           : Result:= dcName;
+    cClassesColProcs          : Result:= dcRoutines;
+    cClassesColProperties     : Result:= dcProperties;
+    cClassesColFileName       : Result:= dcFileName;
+  else
+    raise Exception.Create('ClassStatTypeForCol: unknown column');
+  end
+end;
+
+procedure TFormMain.StringGridClassesDrawCell(Sender: TObject; ACol,
+  ARow: Integer; Rect: TRect; State: TGridDrawState);
+var
+  SaveBrush: TBrushRecall;
+  SaveFont : TFontRecall;
+begin
+  with Sender as TStringGrid do
+  begin
+    SaveBrush:=TBrushRecall.Create(Canvas.Brush);
+    SaveFont  :=TFontRecall.Create(Canvas.Font);
+    try
+      if gdFixed in State then
+      begin
+        Canvas.Brush.Color := clNavy;
+        Canvas.Font.Color  := clWhite;
+      end;
+      Canvas.FillRect(Rect);
+      if gdSelected in State then
+      begin
+        Canvas.Brush.Color := clSkyBlue;
+        Canvas.Font.Style:=Canvas.Font.Style + [fsBold];
+      end;
+      Canvas.TextOut(Rect.Left+2,Rect.Top+2, Cells[ACol, ARow]);
+    finally
+      FreeAndNil(SaveBrush);
+      FreeAndNil(SaveFont);
+    end;
+  end;
+end;
+
+
+procedure TFormMain.StringGridClassesMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+
+  function ColWasAscending(Col: Integer): Boolean;
+  begin
+    Result:= Boolean(StringGridClasses.Objects  [Col, 0])
+  end;
+
+  procedure  SetColSortOrder(Col: Integer; Ascending: Boolean);
+  begin
+    StringGridClasses.Objects  [Col, 0] := TObject(Ascending);
+  end;
+
+  procedure SortGrid(Col: Integer);
+  var
+    WasAscending: Boolean;
+  begin
+    WasAscending:=ColWasAscending(Col);
+    LoadClassesGrid(ClassStatTypeForCol(Col), not WasAscending);
+    SetColSortOrder(Col, not WasAscending);
+  end;
+
+var
+  ACol, ARow: Integer;
+begin
+  StringGridClasses.MouseToCell(X, Y, ACol, ARow);
+  if (ARow = 0) then
+  begin
+    SortGrid(ACol);
+    //ListBoxUnits.Clear;
+  end
+end;
 
 procedure TFormMain.StringGridStatsDrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
 var
@@ -432,7 +615,7 @@ procedure TFormMain.StringGridStatsMouseDown(Sender: TObject; Button: TMouseButt
     WasAscending: Boolean;
   begin
     WasAscending:=ColWasAscending(Col);
-    LoadGrid(StatTypeForCol(Col), not WasAscending, CheckBoxShowExternalUnits.Checked);
+    LoadStatsGrid(UnitStatTypeForCol(Col), not WasAscending, CheckBoxShowExternalUnits.Checked);
     SetColSortOrder(Col, not WasAscending);
   end;
 
@@ -456,7 +639,7 @@ begin
     if StringGridStats.Objects[0, ARow] is TDelphiUnit then
     begin
       SelectedUnit:=StringGridStats.Objects[0, ARow] as TDelphiUnit;
-      SelectedUnit.GetStatDetails(StatTypeForCol(ACol), ListBoxUnits.Items);
+      SelectedUnit.GetStatDetails(UnitStatTypeForCol(ACol), ListBoxUnits.Items);
     end
     else
       ListBoxUnits.Clear;

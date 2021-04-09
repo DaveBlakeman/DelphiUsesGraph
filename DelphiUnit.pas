@@ -28,6 +28,13 @@ type
     duCyclic
   );
 
+  TDelphiClassStatType = (
+    dcName,
+    dcRoutines,
+    dcProperties,
+    dcFileName
+  );
+
   TDelphiUnitFilter = (dufInterfacesOnly, dufAll);
 
   TLazyBool = (lbNotCalculated, lbNo, lbYes);
@@ -383,7 +390,7 @@ begin
     duDepth         : Strings.AddObject(IntToStr(Depth), Self);
     duDepthDiff     : Strings.AddObject(IntToStr(DepthDifferential), Self);
     duClasses       : for C in fInterfaceClasses do
-                        Strings.AddObject(C.Name + ': ' + IntToStr(C.Routines.Count) + ' routines', C);
+                        Strings.AddObject(C.Name + ': ' + IntToStr(C.Routines.Count) + ' routines, ' + IntToStr(C.Properties.Count) + ' properties', C);
     duRoutines      : Strings.Assign(InterfaceRoutines);
     duIntfDependency: GetDependencyTree(Self, Strings, dufInterfacesOnly, 0, 10);
     duImplDependency: GetDependencyTree(Self, Strings, dufAll, 0, 10);
@@ -412,10 +419,9 @@ begin
     Strings.Add('    ' + UsesList(fInterfaceUses));
     Strings.Add('  Implementation');
     Strings.Add('    ' + UsesList(fImplementationUses));
-    Strings.Add('  Referred to by:');
-    Strings.Add('    From Interfaces: ');
+    Strings.Add('  Referred to from Interfaces: ');
     Strings.Add('    ' + UsesList(fRefsFromInterfaces));
-    Strings.Add('    From Implementations: ');
+    Strings.Add('  Referred to from Implementations: ');
     Strings.Add('    ' + UsesList(fRefsFromImplementations));
   end;
 end;

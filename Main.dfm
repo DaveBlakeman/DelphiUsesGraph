@@ -21,16 +21,12 @@ object FormMain: TFormMain
     Top = 0
     Width = 842
     Height = 563
-    ActivePage = TabSheetSettings
+    ActivePage = TabSheetClasses
     Align = alClient
     TabOrder = 0
     OnChange = PageControl1Change
     object TabSheetSettings: TTabSheet
       Caption = 'Project Settings'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object PanelDPIFudge: TPanel
         Left = 0
         Top = 0
@@ -134,18 +130,12 @@ object FormMain: TFormMain
           ParentFont = False
           TabOrder = 4
           VerticalAlignment = taAlignTop
-          ExplicitLeft = 0
-          ExplicitTop = 0
         end
       end
     end
     object TabSheetStatistics: TTabSheet
       Caption = 'Statistics'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object PanelDPIFudgeStats: TPanel
         Left = 0
         Top = 0
@@ -226,13 +216,73 @@ object FormMain: TFormMain
         end
       end
     end
+    object TabSheetClasses: TTabSheet
+      Caption = 'Classes'
+      ImageIndex = 6
+      object Panel3: TPanel
+        Left = 0
+        Top = 0
+        Width = 834
+        Height = 35
+        Align = alTop
+        Caption = 'Statistical Analysis of classes found'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlue
+        Font.Height = -11
+        Font.Name = 'Tahoma'
+        Font.Style = []
+        ParentFont = False
+        TabOrder = 0
+        VerticalAlignment = taAlignTop
+        ExplicitTop = 8
+        object LabelClasses: TLabel
+          Left = 160
+          Top = 16
+          Width = 71
+          Height = 13
+          Caption = 'Showing 0 files'
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -11
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+        end
+      end
+      object StringGridClasses: TStringGrid
+        Left = 0
+        Top = 35
+        Width = 834
+        Height = 403
+        Align = alClient
+        DefaultDrawing = False
+        FixedCols = 0
+        Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goThumbTracking]
+        TabOrder = 1
+        OnDrawCell = StringGridClassesDrawCell
+        OnMouseDown = StringGridClassesMouseDown
+        OnSelectCell = StringGridStatsSelectCell
+        ExplicitLeft = 1
+        ExplicitTop = 36
+        ExplicitWidth = 832
+        ExplicitHeight = 398
+      end
+      object ListBox1: TListBox
+        Left = 0
+        Top = 438
+        Width = 834
+        Height = 97
+        Align = alBottom
+        ItemHeight = 13
+        TabOrder = 2
+        ExplicitLeft = 1
+        ExplicitTop = 437
+        ExplicitWidth = 832
+      end
+    end
     object TabSheetGEXF: TTabSheet
       Caption = 'GEXF'
       ImageIndex = 3
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object PanelFudgeGEXF: TPanel
         Left = 0
         Top = 0
@@ -290,10 +340,6 @@ object FormMain: TFormMain
     object TabSheetIgnoredFiles: TTabSheet
       Caption = 'Ignored Files'
       ImageIndex = 4
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object PanelFudgeIgnore: TPanel
         Left = 0
         Top = 0
@@ -333,10 +379,6 @@ object FormMain: TFormMain
     object TabSheetLog: TTabSheet
       Caption = 'Log'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object MemoLog: TMemo
         Left = 0
         Top = 0
@@ -349,6 +391,55 @@ object FormMain: TFormMain
         TabOrder = 0
       end
     end
+    object TabSheetJSON: TTabSheet
+      Caption = 'JSON'
+      ImageIndex = 5
+      object PanelJSONExport: TPanel
+        Left = 0
+        Top = 0
+        Width = 834
+        Height = 41
+        Align = alTop
+        Caption = 'Export Data to JSON for GraohCommons graph analysis'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlue
+        Font.Height = -11
+        Font.Name = 'Tahoma'
+        Font.Style = []
+        ParentFont = False
+        TabOrder = 0
+        VerticalAlignment = taAlignTop
+        object CheckBoxJSONInterfaceUses: TCheckBox
+          Left = 9
+          Top = 18
+          Width = 137
+          Height = 17
+          Caption = 'Export InterfaceUses'
+          Checked = True
+          State = cbChecked
+          TabOrder = 0
+          OnClick = CheckBoxGexfIntfUsesClick
+        end
+        object CheckBoxJSONImplementationUses: TCheckBox
+          Left = 152
+          Top = 18
+          Width = 166
+          Height = 17
+          Caption = 'Export Implementation Uses'
+          TabOrder = 1
+          OnClick = CheckBoxGexfImplUsesClick
+        end
+      end
+      object MemoJSON: TMemo
+        Left = 0
+        Top = 41
+        Width = 834
+        Height = 494
+        Align = alClient
+        ScrollBars = ssVertical
+        TabOrder = 1
+      end
+    end
   end
   object DirectoryListBox1: TDirectoryListBox
     Left = 632
@@ -358,7 +449,7 @@ object FormMain: TFormMain
     TabOrder = 1
   end
   object OpenDialogRoot: TOpenDialog
-    Filter = 'Dephi files|*.pas'
+    Filter = 'Dephi files|*.pas|Delphi projects|*.dpr|Delphi LIbrarie|*.dpk'
     Left = 528
     Top = 136
   end

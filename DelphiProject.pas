@@ -8,7 +8,8 @@ uses
   Classes,
   DelphiUnit,
   LexicalAnalyser,
-  ProjectSettings;
+  ProjectSettings,
+  DelphiClass;
 
 type
 
@@ -39,6 +40,7 @@ type
     procedure SaveToFile(FileName: String);
 
     procedure GetUnitsSorted(SortCol: TDelphiUnitStatType; Ascending: boolean; IncludeExternalUnits: Boolean; Units: TList<TDelphiUnit>);
+    procedure GetClassesSorted(SortCol: TDelphiClassStatType; Ascending: boolean; Classes: TList<TDelphiClass>);
 
     procedure GetIgnoredFiles(Strings: TStrings);
 
@@ -53,7 +55,7 @@ implementation
 uses
   System.Generics.Defaults,
   System.IOUtils,
-  SysUtils, DelphiClass;
+  SysUtils;
 
 { TDelphiProject }
 
@@ -105,6 +107,28 @@ begin
 end;
 
 
+
+procedure TDelphiProject.GetClassesSorted(SortCol: TDelphiClassStatType; Ascending: boolean; Classes: TList<TDelphiClass>);
+var
+  U: TDelphiUnit;
+  C: TDelphiClass;
+  Comparer: TDelphiClassComparer;
+begin
+  Classes.Clear;
+  for U in fUnits.Values do
+    if U.Parsed then
+    begin
+      for C in U.InterfaceClasses do
+        Classes.Add(C);
+    end;
+
+  Comparer:=TDelphiClassComparer.Create(SortCol, Ascending);
+  try
+    Classes.Sort(Comparer);
+  finally
+    FreeAndNil(Comparer);
+  end;
+end;
 
 procedure TDelphiProject.GetIgnoredFiles(Strings: TStrings);
 var
@@ -257,6 +281,7 @@ var
 
 var
   CurrentClass: TDelphiClass;
+  ClassName   : String;
 begin
   if U.Parsed then
     Exit;
@@ -281,20 +306,29 @@ begin
     //Lex.SkipTo('implementation');
     while not Lex.OptionalSym('implementation') do
     begin
-      if Lex.SymbolIs('class') then
+      if Lex.SymbolIs('class')  then
       begin
-        CurrentClass:=TDelphiClass.Create(Lex.PreviousSym(1));
+        ClassName:=Lex.PreviousSym(1);
         Lex.GetSym;
-        U.InterfaceClasses.Add(CurrentClass);
-        while not Lex.OptionalSym('end') do
+        if     not Lex.OptionalSym(';')             // skip forward declares
+           and not Lex.OptionalSym('function')  // skip class methods
+           and not Lex.OptionalSym('procedure') // skip class methods
+        then
         begin
-          if Lex.OptionalSym('procedure') and not Lex.OptionalSym('(') then
-            CurrentClass.Routines.Add('procedure ' + GetQualifiedName)
-          else if Lex.OptionalSym('function') and not Lex.OptionalSym('(') then
-            CurrentClass.Routines.Add('function ' + GetQualifiedName)
-          else
-            Lex.GetSym;
-        end;
+          CurrentClass:=TDelphiClass.Create(ClassName, FileName);
+          U.InterfaceClasses.Add(CurrentClass);
+          while not Lex.OptionalSym('end') do
+          begin
+            if Lex.OptionalSym('procedure') and not Lex.OptionalSym('(') then
+              CurrentClass.Routines.Add('procedure ' + GetQualifiedName)
+            else if Lex.OptionalSym('function') and not Lex.OptionalSym('(') then
+              CurrentClass.Routines.Add('function ' + GetQualifiedName)
+            else if Lex.OptionalSym('property') then
+              CurrentClass.Properties.Add('property ' + GetQualifiedName)
+            else
+              Lex.GetSym;
+          end
+        end
       end;
 
       if Lex.OptionalSym('procedure') and not Lex.OptionalSym('(') then

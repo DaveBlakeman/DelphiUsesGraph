@@ -103,6 +103,7 @@
         <DCCReference Include="ProjectSettings.pas"/>
         <DCCReference Include="GexfExport.pas"/>
         <DCCReference Include="DelphiClass.pas"/>
+        <DCCReference Include="JSONExport.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

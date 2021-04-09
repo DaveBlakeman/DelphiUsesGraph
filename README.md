@@ -18,6 +18,7 @@ When 'Analyse' is clicked, the parser does the following:-
   - Number of units referencing this unit from their interface
   - Number of units referencing this unit from their implementation
   - Number of lines of code in the unit
+  - Number of classes in the unit's interface, and their methods
   - Number of routines in the unit's interface
   - Whether the unit has or depends on cylic uses structures
 - Clicking on any cell will give a breakdown in the list view below

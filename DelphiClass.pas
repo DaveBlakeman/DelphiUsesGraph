@@ -12,7 +12,8 @@ type
     dcName,
     dcRoutines,
     dcProperties,
-    dcFileName
+    dcFileName,
+    dcUnitsReferencing
   );
 
   TDelphiClass = class
@@ -21,16 +22,18 @@ type
     fFileName: String;
     fRoutines: TStringList;
     fProperties: TStringList;
+    fUnitsReferencing: TStringList; (* TDelphiUnit *)
   public
     constructor Create(Name: String; FileName: String);
     destructor Destroy; override;
 
     procedure GetStatDetails(StatType: TDelphiClassStatType; Strings: TStrings);
 
-    property Name      : String read fName;
-    property FileName  : String read fFileName;
-    property Routines  : TStringList read fRoutines;
-    property Properties: TStringList read fProperties;
+    property Name            : String      read fName;
+    property FileName        : String      read fFileName;
+    property Routines        : TStringList read fRoutines;
+    property Properties      : TStringList read fProperties;
+    property UnitsReferencing: TStringList read fUnitsReferencing;
   end;
 
   TDelphiClassComparer = class(TComparer<TDelphiClass>)
@@ -55,12 +58,14 @@ begin
   fFileName:=FileName;
   fRoutines:=TStringList.Create;
   fProperties:=TStringList.Create;
+  fUnitsReferencing:=TStringList.Create;
 end;
 
 destructor TDelphiClass.Destroy;
 begin
   FreeAndNil(fRoutines);
   FreeAndNil(fProperties);
+  FreeAndNil(fUnitsReferencing);
   inherited;
 end;
 
@@ -68,12 +73,13 @@ procedure TDelphiClass.GetStatDetails(StatType: TDelphiClassStatType; Strings: T
 begin
   Strings.Clear;
   case StatType of
-    dcName          : Strings.AddObject(Name, Self);
-    dcFileName      : Strings.AddObject(FileName, Self);
-    dcRoutines      : Strings.Assign(fRoutines);
-    dcProperties    : Strings.Assign(fProperties);
-    else
-      raise Exception.Create('TDelphiClass.GetStatDetails: unknown stat type');
+    dcName              : Strings.AddObject(Name, Self);
+    dcFileName          : Strings.AddObject(FileName, Self);
+    dcRoutines          : Strings.Assign(fRoutines);
+    dcProperties        : Strings.Assign(fProperties);
+    dcUnitsReferencing  : Strings.Assign(fUnitsReferencing);
+  else
+    raise Exception.Create('TDelphiClass.GetStatDetails: unknown stat type');
   end
 end;
 
@@ -107,12 +113,13 @@ function TDelphiClassComparer.Compare(const Left, Right: TDelphiClass): Integer;
 
 begin
   case fSortCol of
-    dcName          : Result := CompareStrings(Left.Name, Right.Name);
-    dcFileName      : Result := CompareStrings(Left.FileName, Right.FileName);
-    dcRoutines      : Result := CompareIntegers(Left.Routines.Count, Right.Routines.Count);
-    dcProperties    : Result := CompareIntegers(Left.Properties.Count, Right.Properties.Count);
-    else
-      raise Exception.Create('TDelphiClassComparer.Compare: unknown comparison type');
+    dcName             : Result := CompareStrings(Left.Name, Right.Name);
+    dcFileName         : Result := CompareStrings(Left.FileName, Right.FileName);
+    dcRoutines         : Result := CompareIntegers(Left.Routines.Count, Right.Routines.Count);
+    dcProperties       : Result := CompareIntegers(Left.Properties.Count, Right.Properties.Count);
+    dcUnitsReferencing : Result := CompareIntegers(Left.UnitsReferencing.Count, Right.UnitsReferencing.Count);
+  else
+    raise Exception.Create('TDelphiClassComparer.Compare: unknown comparison type');
   end
 end;
 

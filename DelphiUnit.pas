@@ -28,13 +28,6 @@ type
     duCyclic
   );
 
-  TDelphiClassStatType = (
-    dcName,
-    dcRoutines,
-    dcProperties,
-    dcFileName
-  );
-
   TDelphiUnitFilter = (dufInterfacesOnly, dufAll);
 
   TLazyBool = (lbNotCalculated, lbNo, lbYes);
@@ -44,6 +37,7 @@ type
   private
     fName                   : String;
     fFileName               : String;
+    fSourceText             : String;
     fDepth                  : Integer;
     fParsed                 : Boolean;
     fLineCount              : Integer;
@@ -82,15 +76,18 @@ type
 
     procedure Unparse(Strings: TStrings);
 
+    function ContainsClass(ClassName: String): Boolean;
+
     function Weighting: Integer;
 
     function DepthDifferential: Integer;
 
-    property Name                   : String                    read fName      write fName;
-    property FileName               : String                    read fFileName  write fFileName;
-    property Depth                  : Integer                   read fDepth     write fDepth;
-    property LineCount              : Integer                   read fLineCount write fLineCount;
-    property Parsed                 : Boolean                   read fParsed    write fParsed;
+    property Name                   : String                    read fName        write fName;
+    property FileName               : String                    read fFileName    write fFileName;
+    property SourceText             : String                    read fSourceText  write fSourceText;
+    property Depth                  : Integer                   read fDepth       write fDepth;
+    property LineCount              : Integer                   read fLineCount   write fLineCount;
+    property Parsed                 : Boolean                   read fParsed      write fParsed;
     property ContainsCycles         : Boolean                   read GetContainsCycles;
     property MaxDependency          : Integer                   read GetMaxDependency;
     property MaxInterfaceDependency : Integer                   read GetMaxInterfaceDependency;
@@ -137,6 +134,12 @@ begin
   fImplementationUses.Clear;
   fRefsFromInterfaces.Clear;
   fRefsFromImplementations.Clear;
+end;
+
+function TDelphiUnit.ContainsClass(ClassName: String): Boolean;
+begin
+  // very crude a present - ignores all structure, comments etc
+  Result:=ContainsText(fSourceText, ClassName);
 end;
 
 constructor TDelphiUnit.Create;

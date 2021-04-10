@@ -63,10 +63,11 @@ type
     CheckBoxJSONImplementationUses: TCheckBox;
     MemoJSON: TMemo;
     TabSheetClasses: TTabSheet;
-    Panel3: TPanel;
+    PanelClasses: TPanel;
     LabelClasses: TLabel;
     StringGridClasses: TStringGrid;
     ListBoxClassDetails: TListBox;
+    Splitter2: TSplitter;
     procedure Exit1Click(Sender: TObject);
     procedure Open1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -142,7 +143,8 @@ const
   cClassesColName         = 0;
   cClassesColProcs        = 1;
   cClassesColProperties   = 2;
-  cClassesColFileName     = 3;
+  cClassesColUnits        = 3;
+  cClassesColFileName     = 4;
 
 procedure TFormMain.ButtonAddSearchPathClick(Sender: TObject);
 begin
@@ -300,7 +302,9 @@ begin
   AddHeading( cClassesColName,        'Unit', 300);
   AddHeading( cClassesColProcs,       'Routines', 100);
   AddHeading( cClassesColProperties,  'Properties', 100);
+  AddHeading( cClassesColUnits,       'Units', 100);
   AddHeading( cClassesColFileName,    'File Name', 500);
+
   StringGridClasses.ColCount:=LastColIndex+1
 end;
 
@@ -360,6 +364,7 @@ procedure TFormMain.LoadClassesGrid(SortCol: TDelphiClassStatType; Ascending: Bo
     StringGridClasses.Cells[cClassesColName      ,   Row] := C.Name;
     StringGridClasses.Cells[cClassesColProcs     ,   Row] := IntToStr(C.Routines.Count);
     StringGridClasses.Cells[cClassesColProperties,   Row] := IntToStr(C.Properties.Count);
+    StringGridClasses.Cells[cClassesColUnits     ,   Row] := IntToStr(C.UnitsReferencing.Count);
     StringGridClasses.Cells[cClassesColFileName  ,   Row] := C.FileName;
   end;
 
@@ -458,6 +463,8 @@ end;
 procedure TFormMain.ParseFile(FileName: String);
 begin
   fProject.Parse(FileName, Log);
+  if Confirm('Analyse classes? This may take several minutes?') then
+    fProject.AnalyseClassReferences;
   Log('');
   Log('Done.');
   MemoLog.SelStart:=Length(MemoLog.Text);
@@ -501,6 +508,7 @@ begin
     cClassesColName           : Result:= dcName;
     cClassesColProcs          : Result:= dcRoutines;
     cClassesColProperties     : Result:= dcProperties;
+    cClassesColUnits          : Result:= dcUnitsReferencing;
     cClassesColFileName       : Result:= dcFileName;
   else
     raise Exception.Create('ClassStatTypeForCol: unknown column');
@@ -573,15 +581,18 @@ end;
 
 procedure TFormMain.StringGridClassesSelectCell(Sender: TObject; ACol,
   ARow: Integer; var CanSelect: Boolean);
+
 var
   SelectedClass: TDelphiClass;
+  StatType: TDelphiClassStatType;
 begin
   if (ARow > 0) then
   begin
     if StringGridClasses.Objects[0, ARow] is TDelphiClass then
     begin
+      StatType:=ClassStatTypeForCol(ACol);
       SelectedClass:=StringGridClasses.Objects[0, ARow] as TDelphiClass;
-      SelectedClass.GetStatDetails(ClassStatTypeForCol(ACol), ListBoxClassDetails.Items);
+      SelectedClass.GetStatDetails(StatType, ListBoxClassDetails.Items);
     end
     else
       ListBoxClassDetails.Clear;

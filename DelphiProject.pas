@@ -29,6 +29,8 @@ type
     procedure ParseUnit(U: TDelphiUnit; FileName: String; Depth: Integer);
 
     procedure ParsedUsedUnits(ReferringUnit: TDelphiUnit; Depth: Integer);
+
+    procedure GetUnitsContainingClass(ClassName: String; Units: TStrings (* name -> Unit *));
   public
     constructor Create;
     destructor Destroy; override;
@@ -36,11 +38,14 @@ type
     procedure Parse(FileName: String; LogProc: TInfoProc);
     procedure UnParse(Strings: TStrings);
 
+    procedure AnalyseClassReferences;
+
     procedure LoadFromFile(FileName: String);
     procedure SaveToFile(FileName: String);
 
     procedure GetUnitsSorted(SortCol: TDelphiUnitStatType; Ascending: boolean; IncludeExternalUnits: Boolean; Units: TList<TDelphiUnit>);
     procedure GetClassesSorted(SortCol: TDelphiClassStatType; Ascending: boolean; Classes: TList<TDelphiClass>);
+
 
     procedure GetIgnoredFiles(Strings: TStrings);
 
@@ -58,6 +63,18 @@ uses
   SysUtils;
 
 { TDelphiProject }
+
+procedure TDelphiProject.AnalyseClassReferences;
+var
+  U: TDelphiUnit;
+  C: TDelphiClass;
+begin
+  Log('Analysing Class Refs...');
+  for U in fUnits.Values do
+    for C in U.InterfaceClasses do
+      GetUnitsContainingClass(C.Name, C.UnitsReferencing);
+  Log('Analysed Class Refs');
+end;
 
 procedure TDelphiProject.CollectFileNames(Path: String);
 var
@@ -149,6 +166,17 @@ begin
   finally
     Strings.EndUpdate
   end;
+end;
+
+procedure TDelphiProject.GetUnitsContainingClass(ClassName: String;
+  Units: TStrings);
+var
+  U: TDelphiUnit;
+begin
+  Units.Clear;
+  for U in fUnits.Values do
+    if U.Parsed and U.ContainsClass(ClassName) then
+      Units.AddObject(U.Name, U);
 end;
 
 procedure TDelphiProject.GetUnitsSorted(SortCol: TDelphiUnitStatType; Ascending: boolean; IncludeExternalUnits: Boolean; Units: TList<TDelphiUnit>);
@@ -292,6 +320,7 @@ begin
     U.Name:=GetQualifiedName;
     U.FileName:=Filename;
     U.Depth:=Depth;
+    U.SourceText:=Lex.Text;
     //Log('>> Parsing ' + FileName);
     if not fUnits.ContainsKey(U.Name) then
     begin

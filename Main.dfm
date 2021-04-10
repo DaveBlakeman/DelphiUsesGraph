@@ -21,12 +21,16 @@ object FormMain: TFormMain
     Top = 0
     Width = 842
     Height = 563
-    ActivePage = TabSheetClasses
+    ActivePage = TabSheetJSON
     Align = alClient
     TabOrder = 0
     OnChange = PageControl1Change
     object TabSheetSettings: TTabSheet
       Caption = 'Project Settings'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object PanelDPIFudge: TPanel
         Left = 0
         Top = 0
@@ -136,6 +140,10 @@ object FormMain: TFormMain
     object TabSheetStatistics: TTabSheet
       Caption = 'Statistics'
       ImageIndex = 2
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object PanelDPIFudgeStats: TPanel
         Left = 0
         Top = 0
@@ -219,7 +227,20 @@ object FormMain: TFormMain
     object TabSheetClasses: TTabSheet
       Caption = 'Classes'
       ImageIndex = 6
-      object Panel3: TPanel
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
+      object Splitter2: TSplitter
+        Left = 0
+        Top = 435
+        Width = 834
+        Height = 3
+        Cursor = crVSplit
+        Align = alBottom
+        ExplicitTop = 429
+      end
+      object PanelClasses: TPanel
         Left = 0
         Top = 0
         Width = 834
@@ -253,7 +274,7 @@ object FormMain: TFormMain
         Left = 0
         Top = 35
         Width = 834
-        Height = 403
+        Height = 400
         Align = alClient
         DefaultDrawing = False
         FixedCols = 0
@@ -265,7 +286,7 @@ object FormMain: TFormMain
         ExplicitLeft = 1
         ExplicitTop = 36
         ExplicitWidth = 832
-        ExplicitHeight = 398
+        ExplicitHeight = 365
       end
       object ListBoxClassDetails: TListBox
         Left = 0
@@ -275,14 +296,15 @@ object FormMain: TFormMain
         Align = alBottom
         ItemHeight = 13
         TabOrder = 2
-        ExplicitLeft = 1
-        ExplicitTop = 437
-        ExplicitWidth = 832
       end
     end
     object TabSheetGEXF: TTabSheet
       Caption = 'GEXF'
       ImageIndex = 3
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object PanelFudgeGEXF: TPanel
         Left = 0
         Top = 0
@@ -340,6 +362,10 @@ object FormMain: TFormMain
     object TabSheetIgnoredFiles: TTabSheet
       Caption = 'Ignored Files'
       ImageIndex = 4
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object PanelFudgeIgnore: TPanel
         Left = 0
         Top = 0
@@ -379,6 +405,10 @@ object FormMain: TFormMain
     object TabSheetLog: TTabSheet
       Caption = 'Log'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object MemoLog: TMemo
         Left = 0
         Top = 0

@@ -44,9 +44,10 @@ interface
 
       procedure SkipTo(S: String);
 
-      property Logging: Boolean read fLogging write fLogging;
-      property LineNo: Integer read fLineNo;
+      property Logging: Boolean     read fLogging write fLogging;
+      property LineNo : Integer     read fLineNo;
       property LogProc: TInfoProc   read fLogProc write fLogProc;
+      property Text   : String      read fText;
     end;
 
 implementation

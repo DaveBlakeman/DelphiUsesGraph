@@ -261,13 +261,13 @@ object FormMain: TFormMain
         TabOrder = 1
         OnDrawCell = StringGridClassesDrawCell
         OnMouseDown = StringGridClassesMouseDown
-        OnSelectCell = StringGridStatsSelectCell
+        OnSelectCell = StringGridClassesSelectCell
         ExplicitLeft = 1
         ExplicitTop = 36
         ExplicitWidth = 832
         ExplicitHeight = 398
       end
-      object ListBox1: TListBox
+      object ListBoxClassDetails: TListBox
         Left = 0
         Top = 438
         Width = 834

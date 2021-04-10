@@ -8,6 +8,13 @@ uses
   Classes;
 
 type
+  TDelphiClassStatType = (
+    dcName,
+    dcRoutines,
+    dcProperties,
+    dcFileName
+  );
+
   TDelphiClass = class
   private
     fName    : String;
@@ -18,18 +25,13 @@ type
     constructor Create(Name: String; FileName: String);
     destructor Destroy; override;
 
+    procedure GetStatDetails(StatType: TDelphiClassStatType; Strings: TStrings);
+
     property Name      : String read fName;
     property FileName  : String read fFileName;
     property Routines  : TStringList read fRoutines;
     property Properties: TStringList read fProperties;
   end;
-
-  TDelphiClassStatType = (
-    dcName,
-    dcRoutines,
-    dcProperties,
-    dcFileName
-  );
 
   TDelphiClassComparer = class(TComparer<TDelphiClass>)
   private
@@ -60,6 +62,19 @@ begin
   FreeAndNil(fRoutines);
   FreeAndNil(fProperties);
   inherited;
+end;
+
+procedure TDelphiClass.GetStatDetails(StatType: TDelphiClassStatType; Strings: TStrings);
+begin
+  Strings.Clear;
+  case StatType of
+    dcName          : Strings.AddObject(Name, Self);
+    dcFileName      : Strings.AddObject(FileName, Self);
+    dcRoutines      : Strings.Assign(fRoutines);
+    dcProperties    : Strings.Assign(fProperties);
+    else
+      raise Exception.Create('TDelphiClass.GetStatDetails: unknown stat type');
+  end
 end;
 
 { TDelphiClassComparer }

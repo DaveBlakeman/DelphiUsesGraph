@@ -8,3 +8,4 @@ Tests/Tests.dproj.local
 *.stat
 *.identcache
 *.dsk
+__recovery

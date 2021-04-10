@@ -66,7 +66,7 @@ type
     Panel3: TPanel;
     LabelClasses: TLabel;
     StringGridClasses: TStringGrid;
-    ListBox1: TListBox;
+    ListBoxClassDetails: TListBox;
     procedure Exit1Click(Sender: TObject);
     procedure Open1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -89,6 +89,8 @@ type
       Rect: TRect; State: TGridDrawState);
     procedure StringGridClassesMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
+    procedure StringGridClassesSelectCell(Sender: TObject; ACol, ARow: Integer;
+      var CanSelect: Boolean);
   private
     fProject: TDelphiProject;
     procedure CheckControls;
@@ -566,6 +568,23 @@ begin
   begin
     SortGrid(ACol);
     //ListBoxUnits.Clear;
+  end
+end;
+
+procedure TFormMain.StringGridClassesSelectCell(Sender: TObject; ACol,
+  ARow: Integer; var CanSelect: Boolean);
+var
+  SelectedClass: TDelphiClass;
+begin
+  if (ARow > 0) then
+  begin
+    if StringGridClasses.Objects[0, ARow] is TDelphiClass then
+    begin
+      SelectedClass:=StringGridClasses.Objects[0, ARow] as TDelphiClass;
+      SelectedClass.GetStatDetails(ClassStatTypeForCol(ACol), ListBoxClassDetails.Items);
+    end
+    else
+      ListBoxClassDetails.Clear;
   end
 end;
 

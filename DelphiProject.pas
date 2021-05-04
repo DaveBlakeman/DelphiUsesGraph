@@ -16,6 +16,7 @@ type
   TDelphiProject = class
   private
     fLogProc     : TInfoProc;
+    fProgressProc: TProgressProc;
     fSettings    : TProjectSettings;
     fFileNames   : TDictionary<string, string>;   // map unit name to Filename
     fIgnoredFiles: TDictionary<string, string>;
@@ -25,6 +26,8 @@ type
     procedure CollectFileNames(Path: String);
 
     procedure Log(S: String; Level: TLogLevel = llInfo);
+
+    procedure Progress(Current: Integer; Total: Integer);
 
     procedure ParseUnit(U: TDelphiUnit; FileName: String; Depth: Integer);
 
@@ -49,10 +52,11 @@ type
 
     procedure GetIgnoredFiles(Strings: TStrings);
 
-    property LogProc : TInfoProc read fLogProc;
-    property Units   : TDictionary<string, TDelphiUnit> read fUnits;
-    property MainUnit: TDelphiUnit                      read FMainUnit write fMainUnit;
-    property Settings: TProjectSettings                 read fSettings;
+    property LogProc     : TInfoProc                        read fLogProc;
+    property ProgressProc: TProgressProc                    read fProgressProc write fProgressProc;
+    property Units       : TDictionary<string, TDelphiUnit> read fUnits;
+    property MainUnit    : TDelphiUnit                      read FMainUnit write fMainUnit;
+    property Settings    : TProjectSettings                 read fSettings;
   end;
 
 implementation
@@ -68,11 +72,19 @@ procedure TDelphiProject.AnalyseClassReferences;
 var
   U: TDelphiUnit;
   C: TDelphiClass;
+  I: Integer;
+  Total: Integer;
 begin
   Log('Analysing Class Refs...');
+  Total:=fUnits.Count;
+  I:=0;
   for U in fUnits.Values do
+  begin
     for C in U.InterfaceClasses do
       GetUnitsContainingClass(C.Name, C.UnitsReferencing);
+    Inc(I);
+    Progress(I, Total);
+  end;
   Log('Analysed Class Refs');
 end;
 
@@ -173,6 +185,7 @@ procedure TDelphiProject.GetUnitsContainingClass(ClassName: String;
 var
   U: TDelphiUnit;
 begin
+  Log('Checking uses of class ' + ClassName);
   Units.Clear;
   for U in fUnits.Values do
     if U.Parsed and U.ContainsClass(ClassName) then
@@ -307,9 +320,22 @@ var
     end;
   end;
 
+  procedure AddRoutine(CurrentClass: TDelphiClass; Visibility: TDelphiVisibility; Name: String);
+  begin
+    case Visibility of
+      dvPrivate:      CurrentClass.PrivateRoutines.Add(Name);
+      dvProtected:    CurrentClass.ProtectedRoutines.Add(Name);
+      dvPublic:       CurrentClass.PublicRoutines.Add(Name);
+      dvPublished:    CurrentClass.PublishedRoutines.Add(Name);
+    else
+      // skip
+    end;
+  end;
+
 var
   CurrentClass: TDelphiClass;
   ClassName   : String;
+  Visibility  : TDelphiVisibility;
 begin
   if U.Parsed then
     Exit;
@@ -346,12 +372,22 @@ begin
         begin
           CurrentClass:=TDelphiClass.Create(ClassName, FileName);
           U.InterfaceClasses.Add(CurrentClass);
+          Visibility:=dvPublished;
           while not Lex.OptionalSym('end') do
           begin
+            if Lex.SymbolIs('private') then
+              Visibility:=dvPrivate
+            else if Lex.SymbolIs('protected') then
+              Visibility:=dvProtected
+            else if Lex.SymbolIs('public') then
+              Visibility:=dvPublic
+            else if Lex.SymbolIs('published') then
+              Visibility:=dvPublished;
+
             if Lex.OptionalSym('procedure') and not Lex.OptionalSym('(') then
-              CurrentClass.Routines.Add('procedure ' + GetQualifiedName)
+              AddRoutine(CurrentClass, Visibility, 'procedure ' + GetQualifiedName)
             else if Lex.OptionalSym('function') and not Lex.OptionalSym('(') then
-              CurrentClass.Routines.Add('function ' + GetQualifiedName)
+              AddRoutine(CurrentClass, Visibility, 'function ' + GetQualifiedName)
             else if Lex.OptionalSym('property') then
               CurrentClass.Properties.Add('property ' + GetQualifiedName)
             else
@@ -380,6 +416,12 @@ begin
     FreeAndNil(Lex);
   end;
   ParsedUsedUnits(U, Depth+1)
+end;
+
+procedure TDelphiProject.Progress(Current, Total: Integer);
+begin
+  if Assigned(fProgressProc) then
+    fProgressProc(Current, Total)
 end;
 
 procedure TDelphiProject.SaveToFile(FileName: String);

@@ -68,6 +68,7 @@ type
     StringGridClasses: TStringGrid;
     ListBoxClassDetails: TListBox;
     Splitter2: TSplitter;
+    ProgressBarAnalyse: TProgressBar;
     procedure Exit1Click(Sender: TObject);
     procedure Open1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -98,6 +99,7 @@ type
     function Confirm(Msg: String): Boolean;
     procedure ParseFile(FileName: String);
     procedure Log(S: String; Level: TLogLevel = llInfo);
+    procedure Progress(I: Integer; Total: Integer);
     procedure InitStatsGrid;
     procedure InitClassesGrid;
     function  UnitStatTypeForCol(Col: Integer): TDelphiUnitStatType;
@@ -140,11 +142,14 @@ const
   cStatsColCyclic         = 13;
   cStatsColFileName       = 14;
 
-  cClassesColName         = 0;
-  cClassesColProcs        = 1;
-  cClassesColProperties   = 2;
-  cClassesColUnits        = 3;
-  cClassesColFileName     = 4;
+  cClassesColName           = 0;
+  cClassesColPrivateProcs   = 1;
+  cClassesColProtectedProcs = 2;
+  cClassesColPublicProcs    = 3;
+  cClassesColPublishedProcs = 4;
+  cClassesColProperties     = 5;
+  cClassesColUnits          = 6;
+  cClassesColFileName       = 7;
 
 procedure TFormMain.ButtonAddSearchPathClick(Sender: TObject);
 begin
@@ -168,7 +173,7 @@ procedure TFormMain.ButtonAnalyseClick(Sender: TObject);
 begin
   MemoLog.Lines.BeginUpdate;
   try
-    PageControl1.ActivePage:=TabSheetLog;
+    //PageControl1.ActivePage:=TabSheetLog;
     ParseFile(EditRoot.Text);
     PageControl1.ActivePage:=TabSheetStatistics;
   finally
@@ -299,11 +304,14 @@ procedure TFormMain.InitClassesGrid;
 begin
   LastColIndex:=0;
   StringGridClasses.ColCount:=100;
-  AddHeading( cClassesColName,        'Unit', 300);
-  AddHeading( cClassesColProcs,       'Routines', 100);
-  AddHeading( cClassesColProperties,  'Properties', 100);
-  AddHeading( cClassesColUnits,       'Units', 100);
-  AddHeading( cClassesColFileName,    'File Name', 500);
+  AddHeading( cClassesColName,           'Unit', 300);
+  AddHeading( cClassesColPrivateProcs,   'Private Procs', 100);
+  AddHeading( cClassesColProtectedProcs, 'Protected Procs', 100);
+  AddHeading( cClassesColPublicProcs,    'Public Procs', 100);
+  AddHeading( cClassesColPublishedProcs, 'Published Procs', 100);
+  AddHeading( cClassesColProperties,     'Properties', 100);
+  AddHeading( cClassesColUnits,          'Units', 100);
+  AddHeading( cClassesColFileName,       'File Name', 500);
 
   StringGridClasses.ColCount:=LastColIndex+1
 end;
@@ -361,11 +369,14 @@ procedure TFormMain.LoadClassesGrid(SortCol: TDelphiClassStatType; Ascending: Bo
   procedure AddRow(C: TDelphiClass; Row: Integer);
   begin
     StringGridClasses.Objects[0, Row]                     := C;
-    StringGridClasses.Cells[cClassesColName      ,   Row] := C.Name;
-    StringGridClasses.Cells[cClassesColProcs     ,   Row] := IntToStr(C.Routines.Count);
-    StringGridClasses.Cells[cClassesColProperties,   Row] := IntToStr(C.Properties.Count);
-    StringGridClasses.Cells[cClassesColUnits     ,   Row] := IntToStr(C.UnitsReferencing.Count);
-    StringGridClasses.Cells[cClassesColFileName  ,   Row] := C.FileName;
+    StringGridClasses.Cells[cClassesColName           ,   Row] := C.Name;
+    StringGridClasses.Cells[cClassesColPrivateProcs   ,   Row] := IntToStr(C.PrivateRoutines.Count);
+    StringGridClasses.Cells[cClassesColProtectedProcs ,   Row] := IntToStr(C.ProtectedRoutines.Count);
+    StringGridClasses.Cells[cClassesColPublicProcs    ,   Row] := IntToStr(C.PublicRoutines.Count);
+    StringGridClasses.Cells[cClassesColPublishedProcs ,   Row] := IntToStr(C.PublishedRoutines.Count);
+    StringGridClasses.Cells[cClassesColProperties     ,   Row] := IntToStr(C.Properties.Count);
+    StringGridClasses.Cells[cClassesColUnits          ,   Row] := IntToStr(C.UnitsReferencing.Count);
+    StringGridClasses.Cells[cClassesColFileName       ,   Row] := C.FileName;
   end;
 
 var
@@ -462,8 +473,9 @@ end;
 
 procedure TFormMain.ParseFile(FileName: String);
 begin
+  fProject.ProgressProc:=Progress;
   fProject.Parse(FileName, Log);
-  if Confirm('Analyse classes? This may take several minutes?') then
+  if Confirm('Analyse references to classes? This may take several minutes?') then
     fProject.AnalyseClassReferences;
   Log('');
   Log('Done.');
@@ -471,6 +483,15 @@ begin
   LoadStatsGrid(duName, True, CheckBoxShowExternalUnits.Checked);
   LoadClassesGrid(dcName, True);
   //fProject.UnParse(MemoLog.Lines);
+end;
+
+procedure TFormMain.Progress(I, Total: Integer);
+begin
+  I:=Max(I, 1);
+  I:=Min(I, Total);
+  ProgressBarAnalyse.Min:=1;
+  ProgressBarAnalyse.Max:=Total;
+  ProgressBarAnalyse.Position:=I;
 end;
 
 procedure TFormMain.SaveProject1Click(Sender: TObject);
@@ -506,7 +527,10 @@ function TFormMain.ClassStatTypeForCol(Col: Integer): TDelphiClassStatType;
 begin
   case col of
     cClassesColName           : Result:= dcName;
-    cClassesColProcs          : Result:= dcRoutines;
+    cClassesColPrivateProcs   : Result:= dcPrivateRoutines;
+    cClassesColProtectedProcs : Result:= dcProtectedRoutines;
+    cClassesColPublicProcs    : Result:= dcPublicRoutines;
+    cClassesColPublishedProcs : Result:= dcPublishedRoutines;
     cClassesColProperties     : Result:= dcProperties;
     cClassesColUnits          : Result:= dcUnitsReferencing;
     cClassesColFileName       : Result:= dcFileName;

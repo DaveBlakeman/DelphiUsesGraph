@@ -393,7 +393,7 @@ begin
     duDepth         : Strings.AddObject(IntToStr(Depth), Self);
     duDepthDiff     : Strings.AddObject(IntToStr(DepthDifferential), Self);
     duClasses       : for C in fInterfaceClasses do
-                        Strings.AddObject(C.Name + ': ' + IntToStr(C.Routines.Count) + ' routines, ' + IntToStr(C.Properties.Count) + ' properties', C);
+                        Strings.AddObject(C.Name + ': ' + IntToStr(C.TotalRoutines) + ' routines, ' + IntToStr(C.Properties.Count) + ' properties', C);
     duRoutines      : Strings.Assign(InterfaceRoutines);
     duIntfDependency: GetDependencyTree(Self, Strings, dufInterfacesOnly, 0, 10);
     duImplDependency: GetDependencyTree(Self, Strings, dufAll, 0, 10);

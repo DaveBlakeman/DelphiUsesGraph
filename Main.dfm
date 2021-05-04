@@ -21,16 +21,13 @@ object FormMain: TFormMain
     Top = 0
     Width = 842
     Height = 563
-    ActivePage = TabSheetJSON
+    ActivePage = TabSheetClasses
     Align = alClient
     TabOrder = 0
     OnChange = PageControl1Change
+    ExplicitHeight = 529
     object TabSheetSettings: TTabSheet
       Caption = 'Project Settings'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object PanelDPIFudge: TPanel
         Left = 0
         Top = 0
@@ -135,15 +132,19 @@ object FormMain: TFormMain
           TabOrder = 4
           VerticalAlignment = taAlignTop
         end
+        object ProgressBarAnalyse: TProgressBar
+          Left = 152
+          Top = 505
+          Width = 674
+          Height = 17
+          Anchors = [akLeft, akRight, akBottom]
+          TabOrder = 5
+        end
       end
     end
     object TabSheetStatistics: TTabSheet
       Caption = 'Statistics'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object PanelDPIFudgeStats: TPanel
         Left = 0
         Top = 0
@@ -227,10 +228,6 @@ object FormMain: TFormMain
     object TabSheetClasses: TTabSheet
       Caption = 'Classes'
       ImageIndex = 6
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object Splitter2: TSplitter
         Left = 0
         Top = 435
@@ -255,7 +252,6 @@ object FormMain: TFormMain
         ParentFont = False
         TabOrder = 0
         VerticalAlignment = taAlignTop
-        ExplicitTop = 8
         object LabelClasses: TLabel
           Left = 160
           Top = 16
@@ -283,10 +279,6 @@ object FormMain: TFormMain
         OnDrawCell = StringGridClassesDrawCell
         OnMouseDown = StringGridClassesMouseDown
         OnSelectCell = StringGridClassesSelectCell
-        ExplicitLeft = 1
-        ExplicitTop = 36
-        ExplicitWidth = 832
-        ExplicitHeight = 365
       end
       object ListBoxClassDetails: TListBox
         Left = 0
@@ -301,10 +293,6 @@ object FormMain: TFormMain
     object TabSheetGEXF: TTabSheet
       Caption = 'GEXF'
       ImageIndex = 3
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object PanelFudgeGEXF: TPanel
         Left = 0
         Top = 0
@@ -362,10 +350,6 @@ object FormMain: TFormMain
     object TabSheetIgnoredFiles: TTabSheet
       Caption = 'Ignored Files'
       ImageIndex = 4
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object PanelFudgeIgnore: TPanel
         Left = 0
         Top = 0
@@ -405,10 +389,6 @@ object FormMain: TFormMain
     object TabSheetLog: TTabSheet
       Caption = 'Log'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object MemoLog: TMemo
         Left = 0
         Top = 0
@@ -484,8 +464,8 @@ object FormMain: TFormMain
     Top = 136
   end
   object MainMenu1: TMainMenu
-    Left = 32
-    Top = 24
+    Left = 56
+    Top = 232
     object File1: TMenuItem
       Caption = 'File'
       object Open1: TMenuItem

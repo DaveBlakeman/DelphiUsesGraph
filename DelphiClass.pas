@@ -10,30 +10,43 @@ uses
 type
   TDelphiClassStatType = (
     dcName,
-    dcRoutines,
+    dcPrivateRoutines,
+    dcProtectedRoutines,
+    dcPublicRoutines,
+    dcPublishedRoutines,
     dcProperties,
     dcFileName,
     dcUnitsReferencing
   );
 
+  TDelphiVisibility = (dvPrivate, dvProtected, dvPublic, dvPublished);
+
   TDelphiClass = class
   private
-    fName    : String;
-    fFileName: String;
-    fRoutines: TStringList;
-    fProperties: TStringList;
-    fUnitsReferencing: TStringList; (* TDelphiUnit *)
+    fName             : String;
+    fFileName         : String;
+    fPrivateRoutines  : TStringList;
+    fProtectedRoutines: TStringList;
+    fPublicRoutines   : TStringList;
+    fPublishedRoutines: TStringList;
+    fProperties       : TStringList;
+    fUnitsReferencing : TStringList; (* TDelphiUnit *)
   public
     constructor Create(Name: String; FileName: String);
     destructor Destroy; override;
 
     procedure GetStatDetails(StatType: TDelphiClassStatType; Strings: TStrings);
 
-    property Name            : String      read fName;
-    property FileName        : String      read fFileName;
-    property Routines        : TStringList read fRoutines;
-    property Properties      : TStringList read fProperties;
-    property UnitsReferencing: TStringList read fUnitsReferencing;
+    function TotalRoutines: Integer;
+
+    property Name              : String      read fName;
+    property FileName          : String      read fFileName;
+    property PrivateRoutines   : TStringList read fPrivateRoutines;
+    property ProtectedRoutines : TStringList read fProtectedRoutines;
+    property PublicRoutines    : TStringList read fPublicRoutines;
+    property PublishedRoutines : TStringList read fPublishedRoutines;
+    property Properties        : TStringList read fProperties;
+    property UnitsReferencing  : TStringList read fUnitsReferencing;
   end;
 
   TDelphiClassComparer = class(TComparer<TDelphiClass>)
@@ -44,6 +57,9 @@ type
     constructor Create(SortCol: TDelphiClassStatType; Ascending: Boolean);
     function Compare(const Left, Right: TDelphiClass): Integer; override;
   end;
+
+const
+  cDelphiVisibility: array[TDelphiVisibility] of string = ('private', 'protected', 'public', 'published');
 
 implementation
 
@@ -56,14 +72,20 @@ constructor TDelphiClass.Create(Name: String; FileName: String);
 begin
   fName:=Name;
   fFileName:=FileName;
-  fRoutines:=TStringList.Create;
+  fPrivateRoutines  :=TStringList.Create;
+  fProtectedRoutines:=TStringList.Create;
+  fPublicRoutines   :=TStringList.Create;
+  fPublishedRoutines:=TStringList.Create;
   fProperties:=TStringList.Create;
   fUnitsReferencing:=TStringList.Create;
 end;
 
 destructor TDelphiClass.Destroy;
 begin
-  FreeAndNil(fRoutines);
+  FreeAndNil(fPrivateRoutines);
+  FreeAndNil(fProtectedRoutines);
+  FreeAndNil(fPublicRoutines);
+  FreeAndNil(fPublishedRoutines);
   FreeAndNil(fProperties);
   FreeAndNil(fUnitsReferencing);
   inherited;
@@ -75,12 +97,20 @@ begin
   case StatType of
     dcName              : Strings.AddObject(Name, Self);
     dcFileName          : Strings.AddObject(FileName, Self);
-    dcRoutines          : Strings.Assign(fRoutines);
+    dcPrivateRoutines   : Strings.Assign(fPrivateRoutines);
+    dcProtectedRoutines : Strings.Assign(fProtectedRoutines);
+    dcPublicRoutines    : Strings.Assign(fPublicRoutines);
+    dcPublishedRoutines : Strings.Assign(fPublishedRoutines);
     dcProperties        : Strings.Assign(fProperties);
     dcUnitsReferencing  : Strings.Assign(fUnitsReferencing);
   else
     raise Exception.Create('TDelphiClass.GetStatDetails: unknown stat type');
   end
+end;
+
+function TDelphiClass.TotalRoutines: Integer;
+begin
+  Result:=fPrivateRoutines.Count + fProtectedRoutines.Count + fPublicRoutines.Count + fPublishedRoutines.Count
 end;
 
 { TDelphiClassComparer }
@@ -115,7 +145,10 @@ begin
   case fSortCol of
     dcName             : Result := CompareStrings(Left.Name, Right.Name);
     dcFileName         : Result := CompareStrings(Left.FileName, Right.FileName);
-    dcRoutines         : Result := CompareIntegers(Left.Routines.Count, Right.Routines.Count);
+    dcPrivateRoutines  : Result := CompareIntegers(Left.PrivateRoutines.Count, Right.PrivateRoutines.Count);
+    dcProtectedRoutines: Result := CompareIntegers(Left.ProtectedRoutines.Count, Right.ProtectedRoutines.Count);
+    dcPublicRoutines   : Result := CompareIntegers(Left.PublicRoutines.Count, Right.PublicRoutines.Count);
+    dcPublishedRoutines: Result := CompareIntegers(Left.PublishedRoutines.Count, Right.PublishedRoutines.Count);
     dcProperties       : Result := CompareIntegers(Left.Properties.Count, Right.Properties.Count);
     dcUnitsReferencing : Result := CompareIntegers(Left.UnitsReferencing.Count, Right.UnitsReferencing.Count);
   else

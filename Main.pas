@@ -97,6 +97,7 @@ type
     fProject: TDelphiProject;
     procedure CheckControls;
     function Confirm(Msg: String): Boolean;
+    function ConfirmYesNo(Msg: String): Boolean;
     procedure ParseFile(FileName: String);
     procedure Log(S: String; Level: TLogLevel = llInfo);
     procedure Progress(I: Integer; Total: Integer);
@@ -229,6 +230,11 @@ end;
 function TFormMain.Confirm(Msg: String): Boolean;
 begin
   Result:=MessageDlg(Msg, mtConfirmation, [mbOK, mbCancel], 0) = mrOk
+end;
+
+function TFormMain.ConfirmYesNo(Msg: String): Boolean;
+begin
+  Result:=MessageDlg(Msg, mtConfirmation, [mbYes, mbNo], 0) = mrYes
 end;
 
 procedure TFormMain.EditRootChange(Sender: TObject);
@@ -475,7 +481,7 @@ procedure TFormMain.ParseFile(FileName: String);
 begin
   fProject.ProgressProc:=Progress;
   fProject.Parse(FileName, Log);
-  if Confirm('Analyse references to classes? This may take several minutes?') then
+  if ConfirmYesNo('Analyse references to classes? This may take several minutes?') then
     fProject.AnalyseClassReferences;
   Log('');
   Log('Done.');

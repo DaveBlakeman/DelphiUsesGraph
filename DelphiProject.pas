@@ -332,10 +332,59 @@ var
     end;
   end;
 
-var
-  CurrentClass: TDelphiClass;
-  ClassName   : String;
-  Visibility  : TDelphiVisibility;
+  procedure ParseClass;
+
+     procedure ParseSuperTypes;
+     begin
+       if Lex.OptionalSym('(') then
+         while not Lex.OptionalSym(')') do
+          Lex.GetSym;       
+     end;
+     
+  var
+    ClassName   : String;
+    CurrentClass: TDelphiClass;
+    Visibility  : TDelphiVisibility;
+  begin
+    ClassName:=Lex.PreviousSym(1);
+    Lex.GetSym;
+    if     not Lex.OptionalSym(';')             // skip forward declares
+       and not Lex.OptionalSym('function')  // skip class methods
+       and not Lex.OptionalSym('procedure') // skip class methods
+    then
+    begin
+      CurrentClass:=TDelphiClass.Create(ClassName, FileName);
+      U.InterfaceClasses.Add(CurrentClass);
+      Visibility:=dvPublished;
+
+      ParseSuperTypes;
+
+      if Lex.OptionalSym(';') then // special case for TTrivial = class(TSuper);
+        Exit;                                               
+          
+      while not Lex.OptionalSym('end') do
+      begin
+        if Lex.SymbolIs('private') then
+          Visibility:=dvPrivate
+        else if Lex.SymbolIs('protected') then
+          Visibility:=dvProtected
+        else if Lex.SymbolIs('public') then
+          Visibility:=dvPublic
+        else if Lex.SymbolIs('published') then
+          Visibility:=dvPublished;
+
+        if Lex.OptionalSym('procedure') and not Lex.OptionalSym('(') then
+          AddRoutine(CurrentClass, Visibility, 'procedure ' + GetQualifiedName)
+        else if Lex.OptionalSym('function') and not Lex.OptionalSym('(') then
+          AddRoutine(CurrentClass, Visibility, 'function ' + GetQualifiedName)
+        else if Lex.OptionalSym('property') then
+          CurrentClass.Properties.Add('property ' + GetQualifiedName)
+        else
+          Lex.GetSym;
+      end
+    end
+  end; 
+
 begin
   if U.Parsed then
     Exit;
@@ -362,39 +411,7 @@ begin
     while not Lex.OptionalSym('implementation') do
     begin
       if Lex.SymbolIs('class')  then
-      begin
-        ClassName:=Lex.PreviousSym(1);
-        Lex.GetSym;
-        if     not Lex.OptionalSym(';')             // skip forward declares
-           and not Lex.OptionalSym('function')  // skip class methods
-           and not Lex.OptionalSym('procedure') // skip class methods
-        then
-        begin
-          CurrentClass:=TDelphiClass.Create(ClassName, FileName);
-          U.InterfaceClasses.Add(CurrentClass);
-          Visibility:=dvPublished;
-          while not Lex.OptionalSym('end') do
-          begin
-            if Lex.SymbolIs('private') then
-              Visibility:=dvPrivate
-            else if Lex.SymbolIs('protected') then
-              Visibility:=dvProtected
-            else if Lex.SymbolIs('public') then
-              Visibility:=dvPublic
-            else if Lex.SymbolIs('published') then
-              Visibility:=dvPublished;
-
-            if Lex.OptionalSym('procedure') and not Lex.OptionalSym('(') then
-              AddRoutine(CurrentClass, Visibility, 'procedure ' + GetQualifiedName)
-            else if Lex.OptionalSym('function') and not Lex.OptionalSym('(') then
-              AddRoutine(CurrentClass, Visibility, 'function ' + GetQualifiedName)
-            else if Lex.OptionalSym('property') then
-              CurrentClass.Properties.Add('property ' + GetQualifiedName)
-            else
-              Lex.GetSym;
-          end
-        end
-      end;
+        ParseClass;
 
       if Lex.OptionalSym('procedure') and not Lex.OptionalSym('(') then
         U.InterfaceRoutines.Add('procedure ' + GetQualifiedName)

@@ -48,6 +48,7 @@ type
     [TestCase('Comment: Brace within traditional', 'A (* {A comment} *) B,A,B')]
     [TestCase('Comment: Traditional within brace', 'A {(* A comment *) } B,A,B')]
     [TestCase('Comment: Single line', 'A// A comment'#13#10'B,A,B')]
+    [TestCase('Comment: Single line LF', 'A// A comment'#10'B,A,B')]
     procedure TestComments(const InputString : String; const FirstString, SecondString: String);
 
     [Test]

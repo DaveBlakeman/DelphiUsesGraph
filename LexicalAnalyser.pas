@@ -7,6 +7,7 @@ interface
     TLogLevel = (llInfo, llWarning, llError);
 
     TInfoProc = procedure (S: String; Level: TLogLevel = llInfo) of object;
+    TProgressProc = procedure (Current: Integer; Total: Integer) of object;
 
     TLexicalAnalyser = class
     private
@@ -132,7 +133,7 @@ procedure TLexicalAnalyser.GetASym;
 
   procedure IgnoreSingleLineComment;
   begin
-    while (fPos < Length(fText)) and (fCh <> chr(13)) do
+    while (fPos < Length(fText)) and (fCh <> chr(13)) and (fCh <> chr(10)) do
       GetCh
   end;
 
